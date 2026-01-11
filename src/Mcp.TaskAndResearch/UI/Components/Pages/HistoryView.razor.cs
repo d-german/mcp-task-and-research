@@ -140,11 +140,21 @@ public partial class HistoryView : ComponentBase, IDisposable
 
     private static bool IsInDateRange(DateTimeOffset timestamp, DateRange? dateRange)
     {
-        if (dateRange?.Start is null || dateRange?.End is null)
+        if (dateRange is null)
+        {
             return true;
+        }
+
+        var start = dateRange.Start;
+        var end = dateRange.End;
+
+        if (start is null || end is null)
+        {
+            return true;
+        }
 
         var date = timestamp.Date;
-        return date >= dateRange.Start.Value.Date && date <= dateRange.End.Value.Date;
+        return date >= start.Value.Date && date <= end.Value.Date;
     }
 
     private static Color GetStatusColor(Data.TaskStatus status) => status switch

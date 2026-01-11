@@ -16,7 +16,7 @@ public partial class ProfileTabs : ComponentBase
     public EventCallback<string> OnProfileChanged { get; set; }
 
     private MudDynamicTabs _tabs = default!;
-    private List<ProfileInfo> _profiles = [];
+    private readonly List<ProfileInfo> _profiles = [];
     private bool _showRenameDialog;
     private string _newProfileName = string.Empty;
     private ProfileInfo? _profileToRename;
