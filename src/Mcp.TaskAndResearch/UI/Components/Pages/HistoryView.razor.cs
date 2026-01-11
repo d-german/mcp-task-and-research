@@ -11,6 +11,9 @@ public partial class HistoryView : ComponentBase
     private TaskStore TaskStore { get; set; } = default!;
 
     [Inject]
+    private MemoryStore MemoryStore { get; set; } = default!;
+
+    [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
     private List<HistoryItem> _historyItems = [];
@@ -32,8 +35,33 @@ public partial class HistoryView : ComponentBase
 
         try
         {
-            var tasks = await TaskStore.GetAllAsync().ConfigureAwait(false);
-            _historyItems = BuildHistoryFromTasks(tasks, _dateRange, _statusFilter);
+            // Load active tasks
+            var activeTasks = await TaskStore.GetAllAsync().ConfigureAwait(false);
+            
+            // Load archived/cleared tasks from snapshots
+            var archivedTasks = await MemoryStore.ReadAllSnapshotsAsync().ConfigureAwait(false);
+            
+            // Merge both, using a HashSet to avoid duplicates (by task ID)
+            var seenIds = new HashSet<string>();
+            var allTasks = ImmutableArray.CreateBuilder<TaskItem>();
+            
+            foreach (var task in activeTasks)
+            {
+                if (seenIds.Add(task.Id))
+                {
+                    allTasks.Add(task);
+                }
+            }
+            
+            foreach (var task in archivedTasks)
+            {
+                if (seenIds.Add(task.Id))
+                {
+                    allTasks.Add(task);
+                }
+            }
+            
+            _historyItems = BuildHistoryFromTasks(allTasks.ToImmutable(), _dateRange, _statusFilter);
         }
         catch (Exception ex)
         {

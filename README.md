@@ -2,18 +2,21 @@
 
 A Model Context Protocol (MCP) server for task management and research workflows, with an optional Blazor Server UI dashboard.
 
-## Quick Start
+---
 
-### 1. Clone and Build
+## Quick Start (5 minutes)
+
+### Step 1: Clone & Publish
+
 ```bash
 git clone https://github.com/your-repo/mcp-task-and-research.git
 cd mcp-task-and-research
-dotnet build
+dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
 ```
 
-### 2. Configure VS Code MCP
+### Step 2: Add VS Code MCP Configuration
 
-Add to `.vscode/mcp.json` in your project:
+Create or edit `.vscode/mcp.json` in **any project** where you want to use the task manager:
 
 ```json
 {
@@ -22,33 +25,67 @@ Add to `.vscode/mcp.json` in your project:
       "type": "stdio",
       "command": "dotnet",
       "args": [
-        "run",
-        "--project",
-        "C:/path/to/mcp-task-and-research/src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj"
+        "C:/path/to/mcp-task-and-research/publish/Mcp.TaskAndResearch.dll"
       ],
       "env": {
-        "DATA_DIR": ".mcp-tasks",
+        "DATA_DIR": "C:/path/to/your-project/.mcp-tasks",
         "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_PORT": "9998"
+        "TASK_MANAGER_UI_PORT": "9998",
+        "TASK_MANAGER_UI_AUTO_OPEN": "true"
       }
     }
   }
 }
 ```
 
-### 3. Start Using
+> **Important**: Use **absolute paths** for both the DLL and `DATA_DIR` to ensure the server works correctly regardless of the working directory.
 
-1. **Restart VS Code** or reload the MCP server from the MCP panel
-2. **Open the UI** at `http://localhost:9998` (if `TASK_MANAGER_UI=true`)
+#### Example Configuration (Windows)
+
+```json
+{
+  "servers": {
+    "task-and-research": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "C:\\dg-task manager\\mcp-task-and-research\\publish\\Mcp.TaskAndResearch.dll"
+      ],
+      "env": {
+        "DATA_DIR": "C:\\projects\\my-project\\.mcp-tasks",
+        "TASK_MANAGER_UI": "true",
+        "TASK_MANAGER_UI_PORT": "9998",
+        "TASK_MANAGER_UI_AUTO_OPEN": "true"
+      }
+    }
+  }
+}
+```
+
+### Step 3: Start Using
+
+1. **Reload VS Code** or use "Developer: Reload Window" (`Ctrl+Shift+P`)
+2. The **browser opens automatically** to the Tasks UI (if `TASK_MANAGER_UI_AUTO_OPEN=true`)
 3. **Use MCP tools** via Copilot/Claude: `plan_task`, `execute_task`, `verify_task`, etc.
 
-### Environment Variables
+---
+
+## Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATA_DIR` | `.mcp-tasks` | Folder for task data (relative to workspace) |
+| `DATA_DIR` | `.mcp-tasks` | **Use absolute path!** Folder for task data storage |
 | `TASK_MANAGER_UI` | `false` | Enable Blazor web dashboard |
-| `TASK_MANAGER_UI_PORT` | `9998` | Port for web UI |
+| `TASK_MANAGER_UI_PORT` | `9998` | Starting port for web UI (auto-increments if busy) |
+| `TASK_MANAGER_UI_AUTO_OPEN` | `false` | Auto-open browser when server starts |
+
+### Multi-Instance Support
+
+Each VS Code window can run its own MCP server instance. The server **automatically finds the next available port** if the configured port is busy:
+- First instance: `9998`
+- Second instance: `9999`
+- Third instance: `10000`
+- etc.
 
 ---
 
@@ -64,10 +101,17 @@ Add to `.vscode/mcp.json` in your project:
 When `TASK_MANAGER_UI=true`:
 - **Tasks View**: DataGrid with sorting, filtering, search, status indicators
 - **Task Details**: Dialog for viewing/editing tasks, dependencies, related files
-- **History View**: Track completed tasks and verification summaries
-- **Templates View**: Manage task templates
-- **Agents View**: Monitor agent assignments
+- **History View**: Browse all task activity including archived tasks (see below)
 - **Settings View**: Configure preferences, theme, language
+
+#### History & Task Archival
+
+When you clear the task list (via `clear_all_tasks` MCP tool or UI), completed tasks are automatically saved to snapshot files in the `memories/` folder. The **History View** displays:
+
+- **Active tasks**: Current tasks from `tasks.json`
+- **Archived tasks**: Previously cleared tasks from all snapshot files
+
+This means you never lose visibility into past work - cleared tasks remain viewable in History indefinitely.
 
 ### UI Features
 - **Dark/Light Theme**: Toggle with persistent preference
@@ -129,30 +173,64 @@ src/Mcp.TaskAndResearch/
 ## Development
 
 ### Prerequisites
-- .NET 9 SDK
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
 - VS Code with GitHub Copilot or Claude extension
 
-### Build & Test
+### Build from Source
 ```bash
+# Clone the repository
+git clone https://github.com/your-repo/mcp-task-and-research.git
+cd mcp-task-and-research
+
+# Build (debug)
 dotnet build
+
+# Run tests
 dotnet test
+
+# Publish release build
+dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
 ```
 
-### Run Standalone (without MCP client)
+### Rebuilding After Updates
+
+When you pull updates from the repository:
+
 ```bash
-# MCP only
+cd mcp-task-and-research
+git pull
+dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
+```
+
+> **Note**: You must **stop the MCP server** before republishing (reload VS Code or close it), otherwise the DLL will be locked.
+
+### Run Standalone (Development)
+
+For development without an MCP client:
+
+```bash
+# MCP server only (no UI)
 dotnet run --project src/Mcp.TaskAndResearch
 
-# With UI
-TASK_MANAGER_UI=true dotnet run --project src/Mcp.TaskAndResearch
+# With UI enabled
+set TASK_MANAGER_UI=true && dotnet run --project src/Mcp.TaskAndResearch
 # Then open http://localhost:9998
 ```
+
+### Using `dotnet run` vs Published DLL
+
+| Method | Command | Best For |
+|--------|---------|----------|
+| `dotnet run` | `dotnet run --project path/to/csproj` | Development, debugging |
+| Published DLL | `dotnet path/to/Mcp.TaskAndResearch.dll` | Production, multi-project use |
+
+For **production use**, always use the published DLL - it's faster to start and doesn't require recompilation.
 
 ---
 
 ## Known Limitations
 
-1. **In-Memory Storage**: Tasks exist only during server runtime (not persisted to disk)
+1. **JSON File Storage**: Tasks are persisted to `DATA_DIR/tasks.json` - changes from both UI and MCP tools are saved immediately
 2. **Single Project**: Currently reads from one `DATA_DIR`; no multi-project switching in UI
 3. **No Authentication**: UI has no auth; use for local development only
 4. **SignalR Reconnection**: Brief stale data possible during connection recovery

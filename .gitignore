@@ -23,6 +23,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 build-test/
+publish/
 [Ll]og/
 
 # Visual Studio cache/options directory

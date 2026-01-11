@@ -33,11 +33,20 @@
                OpenMiniOnHover="@(!_isMobileLayout)"
                ClipMode="DrawerClipMode.Always">
         <MudNavMenu>
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-            <MudNavLink Href="/tasks" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Task">Tasks</MudNavLink>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Task">Tasks</MudNavLink>
             <MudNavLink Href="/history" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History">History</MudNavLink>
-            <MudNavLink Href="/agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SmartToy">Agents</MudNavLink>
-            <MudNavLink Href="/templates" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">Templates</MudNavLink>
+            
+            @* ============================================================
+               HIDDEN FEATURES - Intentionally disabled, code retained for future development
+               
+               The following features are implemented but hidden from navigation:
+               - Templates (/templates) - Prompt template viewer/editor - needs .md file support
+               - Agents (/agents) - AI persona configuration - needs persistence backend
+               
+               To re-enable, uncomment the MudNavLink entries below.
+               ============================================================ *@
+            @* <MudNavLink Href="/agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SmartToy">Agents</MudNavLink> *@
+            @* <MudNavLink Href="/templates" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">Templates</MudNavLink> *@
             <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
         </MudNavMenu>
     </MudDrawer>

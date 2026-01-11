@@ -9,6 +9,7 @@ internal static class ServerHost
 {
     private const string UiEnabledEnvVar = "TASK_MANAGER_UI";
     private const string UiPortEnvVar = "TASK_MANAGER_UI_PORT";
+    private const string UiAutoOpenEnvVar = "TASK_MANAGER_UI_AUTO_OPEN";
     private const int DefaultUiPort = 9998;
 
     public static async Task RunAsync(string[] args, CancellationToken cancellationToken = default)
@@ -27,7 +28,16 @@ internal static class ServerHost
 
     private static async Task RunWithBlazorAsync(string[] args, CancellationToken cancellationToken)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        // Get the directory where the DLL is located for proper content root
+        var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+        var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? Environment.CurrentDirectory;
+        
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = args,
+            ContentRootPath = assemblyDir,
+            WebRootPath = Path.Combine(assemblyDir, "wwwroot")
+        });
         
         // Configure logging
         LoggingConfiguration.Configure(builder.Logging);
@@ -46,17 +56,34 @@ internal static class ServerHost
         builder.Services.AddSingleton(typeof(Microsoft.Extensions.Localization.IStringLocalizer<>), 
             typeof(UI.Services.JsonStringLocalizer<>));
         
-        // Configure Kestrel port
-        var port = GetUiPort();
+        // Find an available port starting from the configured port
+        var preferredPort = GetUiPort();
+        var actualPort = FindAvailablePort(preferredPort);
+        
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ListenLocalhost(port);
+            options.ListenLocalhost(actualPort);
         });
         
         // Enable static web assets from Razor class libraries (like MudBlazor)
         builder.WebHost.UseStaticWebAssets();
         
         var app = builder.Build();
+        
+        // Log the UI URL
+        var uiUrl = $"http://localhost:{actualPort}";
+        var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("TaskManagerUI");
+        logger.LogInformation("Task Manager UI available at: {Url}", uiUrl);
+        if (actualPort != preferredPort)
+        {
+            logger.LogWarning("Port {PreferredPort} was in use, using {ActualPort} instead", preferredPort, actualPort);
+        }
+        
+        // Auto-open browser if configured
+        if (IsAutoOpenEnabled())
+        {
+            _ = Task.Run(() => OpenBrowser(uiUrl), CancellationToken.None);
+        }
         
         // Configure middleware for Blazor
         app.UseStaticFiles();
@@ -107,5 +134,57 @@ internal static class ServerHost
         }
         
         return DefaultUiPort;
+    }
+
+    private static int FindAvailablePort(int startPort, int maxAttempts = 10)
+    {
+        for (var i = 0; i < maxAttempts; i++)
+        {
+            var port = startPort + i;
+            if (IsPortAvailable(port))
+            {
+                return port;
+            }
+        }
+        
+        return startPort; // Let it fail with clear error if none available
+    }
+
+    private static bool IsPortAvailable(int port)
+    {
+        try
+        {
+            using var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
+            listener.Start();
+            listener.Stop();
+            return true;
+        }
+        catch (System.Net.Sockets.SocketException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsAutoOpenEnabled()
+    {
+        var envValue = Environment.GetEnvironmentVariable(UiAutoOpenEnvVar);
+        return string.Equals(envValue, "true", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void OpenBrowser(string url)
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = url,
+                UseShellExecute = true
+            };
+            System.Diagnostics.Process.Start(psi);
+        }
+        catch
+        {
+            // Ignore errors opening browser
+        }
     }
 }
