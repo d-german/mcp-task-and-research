@@ -61,20 +61,14 @@ public partial class HistoryView : ComponentBase, IDisposable
             var seenIds = new HashSet<string>();
             var allTasks = ImmutableArray.CreateBuilder<TaskItem>();
             
-            foreach (var task in activeTasks)
+            foreach (var task in activeTasks.Where(task => seenIds.Add(task.Id)))
             {
-                if (seenIds.Add(task.Id))
-                {
-                    allTasks.Add(task);
-                }
+                allTasks.Add(task);
             }
             
-            foreach (var task in archivedTasks)
+            foreach (var task in archivedTasks.Where(task => seenIds.Add(task.Id)))
             {
-                if (seenIds.Add(task.Id))
-                {
-                    allTasks.Add(task);
-                }
+                allTasks.Add(task);
             }
             
             _historyItems = BuildHistoryFromTasks(allTasks.ToImmutable(), _dateRange, _statusFilter);

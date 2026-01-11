@@ -318,8 +318,15 @@ src/CheckmarxTool.Web/Data/*-log.db
 tests/playwright/test-results/
 
 # MCP (Model Context Protocol) tools
-.serena/
 .shrimp/
 .run/.shrimp/
 .refactor-mcp/
 mcp-config.json
+
+# Serena - track config and memories, ignore binary cache
+# First un-ignore the folder, then ignore only the cache
+!.serena/
+.serena/cache/
+
+# MCP Tasks - track task JSON files and memory
+!.mcp-tasks/
