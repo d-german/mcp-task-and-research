@@ -103,9 +103,7 @@ public partial class SettingsView : ComponentBase
         public bool IsDarkMode { get; set; } = true;
         public string Theme { get; set; } = "default";
         public string Language { get; set; } = "en";
-        public bool AutoRefreshEnabled { get; set; } = false;
-        public int AutoRefreshInterval { get; set; } = 30;
-        public bool ShowNotifications { get; set; } = true;
+public bool ShowNotifications { get; set; } = true;
         public bool PlaySound { get; set; } = false;
     }
 }

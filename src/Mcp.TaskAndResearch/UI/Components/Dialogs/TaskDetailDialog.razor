@@ -19,7 +19,7 @@
                                   ReadOnly="@(!_isEditMode)" />
                 </MudItem>
                 
-                <MudItem xs="12" sm="6">
+                <MudItem xs="12">
                     <MudSelect @bind-Value="_model.Status"
                                Label="Status"
                                Variant="Variant.Outlined"
@@ -31,14 +31,7 @@
                     </MudSelect>
                 </MudItem>
                 
-                <MudItem xs="12" sm="6">
-                    <MudTextField @bind-Value="_model.Agent"
-                                  Label="Agent"
-                                  Variant="Variant.Outlined"
-                                  ReadOnly="@(!_isEditMode)" />
-                </MudItem>
-                
-                <MudItem xs="12">
+<MudItem xs="12">
                     <MudTextField @bind-Value="_model.Description"
                                   Label="Description"
                                   Lines="3"

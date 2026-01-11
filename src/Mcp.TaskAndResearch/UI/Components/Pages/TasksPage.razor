@@ -9,9 +9,7 @@
           CompletedCount="@_tasks.Count(t => t.Status == Data.TaskStatus.Completed)"
           BlockedCount="@_tasks.Count(t => t.Status == Data.TaskStatus.Blocked)"
           @bind-SearchString="_searchString"
-          @bind-AutoRefreshEnabled="_autoRefreshEnabled"
-          AutoRefreshInterval="@_autoRefreshInterval"
-          OnRefresh="LoadTasksAsync" />
+OnRefresh="LoadTasksAsync" />
 
 <MudPaper Elevation="2" Class="pa-4">
     @if (_isLoading)
@@ -44,7 +42,7 @@
                           Immediate="true" />
             <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
                            OnClick="LoadTasksAsync" 
-                           Title="Refresh" 
+                           aria-label="Refresh" 
                            Class="ml-2" />
         </ToolBarContent>
         <Columns>
@@ -65,12 +63,7 @@
                     </MudChip>
                 </CellTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="x => x.Agent" Title="Agent" Sortable="true" Filterable="true">
-                <CellTemplate>
-                    @(context.Item.Agent ?? "-")
-                </CellTemplate>
-            </PropertyColumn>
-            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Sortable="true" Format="g">
+<PropertyColumn Property="x => x.CreatedAt" Title="Created" Sortable="true" Format="g">
                 <CellTemplate>
                     <MudTooltip Text="@context.Item.CreatedAt.ToString("F")">
                         @FormatRelativeTime(context.Item.CreatedAt)
@@ -92,11 +85,11 @@
                     <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
                                    Size="Size.Small" 
                                    OnClick="@(() => ViewTaskAsync(context.Item))"
-                                   Title="View Details" />
+                                   aria-label="View Details" />
                     <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                    Size="Size.Small" 
                                    OnClick="@(() => EditTaskAsync(context.Item))"
-                                   Title="Edit" />
+                                   aria-label="Edit" />
                 </CellTemplate>
             </TemplateColumn>
         </Columns>

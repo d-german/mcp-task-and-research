@@ -39,12 +39,12 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" 
                                Size="Size.Small"
                                OnClick="@(() => OpenEditDialog(context))"
-                               Title="Edit" />
+                               aria-label="Edit" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" 
                                Size="Size.Small"
                                Color="Color.Error"
                                OnClick="@(() => DeleteAgent(context))"
-                               Title="Delete" />
+                               aria-label="Delete" />
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>

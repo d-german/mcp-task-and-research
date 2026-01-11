@@ -16,10 +16,7 @@ public partial class TasksPage : ComponentBase, IDisposable
     private ImmutableArray<TaskItem> _tasks = [];
     private bool _isLoading = true;
     private string _searchString = string.Empty;
-    private bool _autoRefreshEnabled = false;
-    private int _autoRefreshInterval = 30;
-
-    private Func<TaskItem, bool> _quickFilter => task =>
+private Func<TaskItem, bool> _quickFilter => task =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
@@ -126,8 +123,7 @@ public partial class TasksPage : ComponentBase, IDisposable
         
         return task.Name.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
                task.Description.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
-               (task.Agent?.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ?? false) ||
-               task.Id.Contains(searchLower, StringComparison.OrdinalIgnoreCase);
+task.Id.Contains(searchLower, StringComparison.OrdinalIgnoreCase);
     }
 
     private static Color GetStatusColor(Data.TaskStatus status) => status switch

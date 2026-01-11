@@ -11,7 +11,7 @@
     {
         <MudDataGrid T="TemplateInfo" 
                      Items="@_templates"
-                     Sortable="true"
+                     SortMode="SortMode.Multiple"
                      Filterable="true"
                      QuickFilter="@_quickFilter"
                      Hover="true"
@@ -28,7 +28,7 @@
                               Class="mt-0" />
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh"
                                OnClick="LoadTemplatesAsync"
-                               Title="Refresh"
+                               aria-label="Refresh"
                                Class="ml-2" />
             </ToolBarContent>
             <Columns>
@@ -57,11 +57,11 @@
                         <MudIconButton Icon="@Icons.Material.Filled.Visibility"
                                        Size="Size.Small"
                                        OnClick="@(() => ViewTemplate(context.Item))"
-                                       Title="View" />
+                                       aria-label="View" />
                         <MudIconButton Icon="@Icons.Material.Filled.Edit"
                                        Size="Size.Small"
                                        OnClick="@(() => EditTemplate(context.Item))"
-                                       Title="Edit" />
+                                       aria-label="Edit" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>

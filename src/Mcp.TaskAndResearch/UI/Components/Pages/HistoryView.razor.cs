@@ -5,10 +5,10 @@ using MudBlazor;
 
 namespace Mcp.TaskAndResearch.UI.Components.Pages;
 
-public partial class HistoryView : ComponentBase
+public partial class HistoryView : ComponentBase, IDisposable
 {
     [Inject]
-    private TaskStore TaskStore { get; set; } = default!;
+    private ITaskReader TaskReader { get; set; } = default!;
 
     [Inject]
     private MemoryStore MemoryStore { get; set; } = default!;
@@ -23,9 +23,25 @@ public partial class HistoryView : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
+        TaskReader.OnTaskChanged += OnTaskChanged;
         // Default to last 7 days
         _dateRange = new DateRange(DateTime.Today.AddDays(-7), DateTime.Today);
         await LoadHistoryAsync();
+    }
+
+    public void Dispose()
+    {
+        TaskReader.OnTaskChanged -= OnTaskChanged;
+        GC.SuppressFinalize(this);
+    }
+
+    private void OnTaskChanged(TaskChangeEventArgs args)
+    {
+        // Re-load history on any change and update UI
+        InvokeAsync(async () =>
+        {
+            await LoadHistoryAsync();
+        });
     }
 
     private async Task LoadHistoryAsync()
@@ -36,7 +52,7 @@ public partial class HistoryView : ComponentBase
         try
         {
             // Load active tasks
-            var activeTasks = await TaskStore.GetAllAsync().ConfigureAwait(false);
+            var activeTasks = await TaskReader.GetAllAsync().ConfigureAwait(false);
             
             // Load archived/cleared tasks from snapshots
             var archivedTasks = await MemoryStore.ReadAllSnapshotsAsync().ConfigureAwait(false);

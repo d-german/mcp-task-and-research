@@ -28,65 +28,15 @@ public partial class StatsBar : ComponentBase, IDisposable
     [Parameter]
     public EventCallback OnRefresh { get; set; }
 
-    [Parameter]
-    public bool AutoRefreshEnabled { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> AutoRefreshEnabledChanged { get; set; }
-
-    [Parameter]
-    public int AutoRefreshInterval { get; set; } = 30;
-
     private string _searchString = string.Empty;
-    private System.Timers.Timer? _refreshTimer;
 
     protected override void OnParametersSet()
     {
         _searchString = SearchString;
-        UpdateTimer();
-    }
-
-    private void UpdateTimer()
-    {
-        if (AutoRefreshEnabled && AutoRefreshInterval > 0)
-        {
-            _refreshTimer?.Stop();
-            _refreshTimer = new System.Timers.Timer(AutoRefreshInterval * 1000);
-            _refreshTimer.Elapsed += OnTimerElapsed;
-            _refreshTimer.AutoReset = true;
-            _refreshTimer.Start();
-        }
-        else
-        {
-            StopTimer();
-        }
-    }
-
-    private void OnTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
-    {
-        InvokeAsync(async () =>
-        {
-            if (OnRefresh.HasDelegate)
-            {
-                await OnRefresh.InvokeAsync();
-            }
-        });
-    }
-
-    private void StopTimer()
-    {
-        if (_refreshTimer is not null)
-        {
-            _refreshTimer.Elapsed -= OnTimerElapsed;
-            _refreshTimer.Stop();
-            _refreshTimer.Dispose();
-            _refreshTimer = null;
-        }
     }
 
     public void Dispose()
     {
-        StopTimer();
         GC.SuppressFinalize(this);
     }
 
@@ -104,12 +54,5 @@ public partial class StatsBar : ComponentBase, IDisposable
         }
     }
 
-    private async Task OnAutoRefreshToggled(bool value)
-    {
-        if (AutoRefreshEnabledChanged.HasDelegate)
-        {
-            await AutoRefreshEnabledChanged.InvokeAsync(value);
-        }
-        UpdateTimer();
-    }
+
 }

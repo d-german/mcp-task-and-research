@@ -71,7 +71,6 @@ public partial class TaskDetailDialog : ComponentBase
             Name = task.Name,
             Description = task.Description,
             Status = task.Status,
-            Agent = task.Agent,
             Notes = task.Notes,
             ImplementationGuide = task.ImplementationGuide,
             VerificationCriteria = task.VerificationCriteria
@@ -85,7 +84,6 @@ public partial class TaskDetailDialog : ComponentBase
             Name = model.Name,
             Description = model.Description,
             Status = model.Status,
-            Agent = model.Agent,
             Notes = model.Notes,
             ImplementationGuide = model.ImplementationGuide,
             VerificationCriteria = model.VerificationCriteria
@@ -97,7 +95,6 @@ public partial class TaskDetailDialog : ComponentBase
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public Data.TaskStatus Status { get; set; }
-        public string? Agent { get; set; }
         public string? Notes { get; set; }
         public string? ImplementationGuide { get; set; }
         public string? VerificationCriteria { get; set; }

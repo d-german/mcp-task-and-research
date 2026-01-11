@@ -31,16 +31,7 @@
                           Variant="Variant.Outlined"
                           Margin="Margin.Dense"
                           Class="search-field" />
-            <MudTooltip Text="@(AutoRefreshEnabled ? $"Auto-refresh every {AutoRefreshInterval}s" : "Auto-refresh off")">
-                <MudSwitch T="bool" 
-                           Value="AutoRefreshEnabled"
-                           ValueChanged="OnAutoRefreshToggled"
-                           Color="Color.Primary"
-                           UncheckedColor="Color.Default"
-                           ThumbIcon="@Icons.Material.Filled.Autorenew"
-                           Size="Size.Small" />
-            </MudTooltip>
-            <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+<MudIconButton Icon="@Icons.Material.Filled.Refresh" 
                            OnClick="OnRefreshClicked" 
                            Color="Color.Primary" />
         </MudStack>
