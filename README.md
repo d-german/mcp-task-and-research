@@ -1,6 +1,56 @@
 # MCP Task and Research Server
 
-A Model Context Protocol (MCP) server for task management and research workflows, featuring an optional Blazor Server UI dashboard.
+A Model Context Protocol (MCP) server for task management and research workflows, with an optional Blazor Server UI dashboard.
+
+## Quick Start
+
+### 1. Clone and Build
+```bash
+git clone https://github.com/your-repo/mcp-task-and-research.git
+cd mcp-task-and-research
+dotnet build
+```
+
+### 2. Configure VS Code MCP
+
+Add to `.vscode/mcp.json` in your project:
+
+```json
+{
+  "servers": {
+    "task-and-research": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "C:/path/to/mcp-task-and-research/src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj"
+      ],
+      "env": {
+        "DATA_DIR": ".mcp-tasks",
+        "TASK_MANAGER_UI": "true",
+        "TASK_MANAGER_UI_PORT": "9998"
+      }
+    }
+  }
+}
+```
+
+### 3. Start Using
+
+1. **Restart VS Code** or reload the MCP server from the MCP panel
+2. **Open the UI** at `http://localhost:9998` (if `TASK_MANAGER_UI=true`)
+3. **Use MCP tools** via Copilot/Claude: `plan_task`, `execute_task`, `verify_task`, etc.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATA_DIR` | `.mcp-tasks` | Folder for task data (relative to workspace) |
+| `TASK_MANAGER_UI` | `false` | Enable Blazor web dashboard |
+| `TASK_MANAGER_UI_PORT` | `9998` | Port for web UI |
+
+---
 
 ## Features
 
@@ -10,107 +60,54 @@ A Model Context Protocol (MCP) server for task management and research workflows
 - **Process Thought**: Record structured reasoning steps
 - **Project Rules**: Initialize and manage project conventions
 
-### Blazor UI Dashboard (Optional)
-- **Tasks View**: MudDataGrid with sorting, filtering, pagination, and quick search
-- **Task Details**: Dialog for viewing and editing task details, dependencies, and related files
+### Blazor UI Dashboard
+When `TASK_MANAGER_UI=true`:
+- **Tasks View**: DataGrid with sorting, filtering, search, status indicators
+- **Task Details**: Dialog for viewing/editing tasks, dependencies, related files
 - **History View**: Track completed tasks and verification summaries
-- **Templates View**: Manage task templates for common workflows
-- **Agents View**: Monitor agent assignments and workloads
-- **Settings View**: Configure application preferences
+- **Templates View**: Manage task templates
+- **Agents View**: Monitor agent assignments
+- **Settings View**: Configure preferences, theme, language
 
-## Environment Variables
+### UI Features
+- **Dark/Light Theme**: Toggle with persistent preference
+- **Keyboard Shortcuts**: `Ctrl+N` (new), `Ctrl+F` (search), `Ctrl+S` (save), `Ctrl+R` (refresh), `Esc` (close), `?` (help)
+- **Responsive Layout**: Mobile-friendly with adaptive navigation
+- **Real-time Updates**: Tasks sync instantly between MCP and UI
+- **Error Handling**: User-friendly error messages with recovery
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TASK_MANAGER_UI` | `false` | Enable Blazor Server UI alongside MCP server |
-| `TASK_MANAGER_UI_PORT` | `9998` | Port for the Blazor UI web server |
-
-## Quick Start
-
-### MCP-Only Mode (Default)
-```bash
-dotnet run --project src/Mcp.TaskAndResearch
-```
-
-### With UI Dashboard
-```bash
-# Windows
-set TASK_MANAGER_UI=true
-set TASK_MANAGER_UI_PORT=9998
-dotnet run --project src/Mcp.TaskAndResearch
-
-# PowerShell
-$env:TASK_MANAGER_UI = "true"
-$env:TASK_MANAGER_UI_PORT = "9998"
-dotnet run --project src/Mcp.TaskAndResearch
-
-# Linux/macOS
-TASK_MANAGER_UI=true TASK_MANAGER_UI_PORT=9998 dotnet run --project src/Mcp.TaskAndResearch
-```
-
-Then open `http://localhost:9998` in your browser.
+---
 
 ## Architecture
 
-### Core Components
-- **TaskStore**: In-memory task storage with change notification events
-- **MemoryStore**: Persistent memory storage for context between sessions
-- **RulesStore**: Project-specific rules and conventions
-
-### UI Layer (When Enabled)
-- **MudBlazor 8.0**: Material Design component library
-- **Code-Behind Pattern**: All components use `.razor` + `.razor.cs` separation
-- **Real-time Updates**: SignalR-based automatic UI refresh when tasks change
-- **Responsive Design**: Mobile-friendly layout with adaptive navigation
-
-### Shared Services
-The UI and MCP server share the same DI container and data stores:
-- Tasks created via MCP tools appear instantly in the UI
-- UI modifications are immediately available to MCP clients
-- Single source of truth for all task data
-
-## UI Features
-
-### Theme Support
-- Light and Dark mode toggle
-- Persistent preference via localStorage
-- Custom color palette for task status indicators
-
-### Keyboard Shortcuts
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+N` | New task |
-| `Ctrl+F` | Focus search |
-| `Ctrl+S` | Save |
-| `Ctrl+R` | Refresh |
-| `Esc` | Close dialog |
-| `?` | Show help |
-
-### Error Handling
-- Global error boundary catches unhandled exceptions
-- User-friendly error messages with recovery option
-- Errors logged for debugging
-
-### Loading States
-- Global loading overlay for async operations
-- Inline loading indicators in data grids
-- Scoped loading management for nested operations
-
-## Development
-
-### Prerequisites
-- .NET 9 SDK
-- Visual Studio 2022 / VS Code / Rider
-
-### Build
-```bash
-dotnet build
+### How It Works
+```
+┌─────────────────┐     ┌──────────────────┐
+│   MCP Client    │────▶│  MCP Server      │
+│ (Copilot/Claude)│     │  (stdio)         │
+└─────────────────┘     └────────┬─────────┘
+                                 │
+                        ┌────────▼─────────┐
+                        │   Shared DI      │
+                        │   Container      │
+                        └────────┬─────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+     ┌────────▼────────┐ ┌──────▼───────┐ ┌───────▼───────┐
+     │   TaskStore     │ │ MemoryStore  │ │  RulesStore   │
+     │   (tasks)       │ │ (context)    │ │  (conventions)│
+     └────────┬────────┘ └──────────────┘ └───────────────┘
+              │
+     ┌────────▼────────┐
+     │  Blazor UI      │  (optional, port 9998)
+     │  (MudBlazor)    │
+     └─────────────────┘
 ```
 
-### Run Tests
-```bash
-dotnet test
-```
+- **Shared Services**: UI and MCP share the same data stores via DI
+- **Real-time Sync**: Changes via MCP tools appear instantly in UI and vice versa
+- **Conditional Hosting**: UI only starts when `TASK_MANAGER_UI=true`
 
 ### Project Structure
 ```
@@ -120,42 +117,47 @@ src/Mcp.TaskAndResearch/
 ├── Prompts/          # Prompt template builders
 ├── Server/           # MCP server configuration
 ├── Tools/            # MCP tool implementations
-├── UI/               # Blazor UI components
-│   ├── Components/
-│   │   ├── Dialogs/  # Modal dialogs
-│   │   ├── Layout/   # MainLayout, NavMenu
-│   │   ├── Pages/    # Route pages
-│   │   └── Shared/   # Reusable components
-│   ├── Services/     # UI-specific services
-│   └── Theme/        # MudBlazor theme configuration
-└── wwwroot/          # Static assets (CSS, JS)
+├── UI/               # Blazor UI (when enabled)
+│   ├── Components/   # Razor components
+│   ├── Services/     # UI services
+│   └── Theme/        # MudBlazor theme
+└── wwwroot/          # Static assets
 ```
 
-## MCP Client Configuration
+---
 
-Add to your MCP client configuration (e.g., Claude Desktop):
+## Development
 
-```json
-{
-  "mcpServers": {
-    "task-and-research": {
-      "command": "dotnet",
-      "args": ["run", "--project", "path/to/src/Mcp.TaskAndResearch"],
-      "env": {
-        "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_PORT": "9998"
-      }
-    }
-  }
-}
+### Prerequisites
+- .NET 9 SDK
+- VS Code with GitHub Copilot or Claude extension
+
+### Build & Test
+```bash
+dotnet build
+dotnet test
 ```
+
+### Run Standalone (without MCP client)
+```bash
+# MCP only
+dotnet run --project src/Mcp.TaskAndResearch
+
+# With UI
+TASK_MANAGER_UI=true dotnet run --project src/Mcp.TaskAndResearch
+# Then open http://localhost:9998
+```
+
+---
 
 ## Known Limitations
 
-1. **In-Memory Storage**: Tasks are not persisted to disk by default; they exist only during server runtime
-2. **Single Instance**: The UI assumes a single server instance; multiple instances would have separate task stores
-3. **No Authentication**: The UI has no built-in authentication; suitable for local development only
-4. **SignalR Connection**: Real-time updates require stable SignalR connection; reconnection is automatic but may briefly show stale data
+1. **In-Memory Storage**: Tasks exist only during server runtime (not persisted to disk)
+2. **Single Project**: Currently reads from one `DATA_DIR`; no multi-project switching in UI
+3. **No Authentication**: UI has no auth; use for local development only
+4. **SignalR Reconnection**: Brief stale data possible during connection recovery
+
+---
 
 ## License
 
