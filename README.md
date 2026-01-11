@@ -30,7 +30,6 @@ Create or edit `.vscode/mcp.json` in **any project** where you want to use the t
       "env": {
         "DATA_DIR": "C:/path/to/your-project/.mcp-tasks",
         "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_PORT": "9998",
         "TASK_MANAGER_UI_AUTO_OPEN": "true"
       }
     }
@@ -54,7 +53,6 @@ Create or edit `.vscode/mcp.json` in **any project** where you want to use the t
       "env": {
         "DATA_DIR": "C:\\projects\\my-project\\.mcp-tasks",
         "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_PORT": "9998",
         "TASK_MANAGER_UI_AUTO_OPEN": "true"
       }
     }
@@ -75,17 +73,8 @@ Create or edit `.vscode/mcp.json` in **any project** where you want to use the t
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DATA_DIR` | `.mcp-tasks` | **Use absolute path!** Folder for task data storage |
-| `TASK_MANAGER_UI` | `false` | Enable Blazor web dashboard |
-| `TASK_MANAGER_UI_PORT` | `9998` | Starting port for web UI (auto-increments if busy) |
+| `TASK_MANAGER_UI` | `false` | Enable Blazor web dashboard (auto-selects available port starting at 9998) |
 | `TASK_MANAGER_UI_AUTO_OPEN` | `false` | Auto-open browser when server starts |
-
-### Multi-Instance Support
-
-Each VS Code window can run its own MCP server instance. The server **automatically finds the next available port** if the configured port is busy:
-- First instance: `9998`
-- Second instance: `9999`
-- Third instance: `10000`
-- etc.
 
 ---
 
@@ -144,7 +133,7 @@ This means you never lose visibility into past work - cleared tasks remain viewa
      └────────┬────────┘ └──────────────┘ └───────────────┘
               │
      ┌────────▼────────┐
-     │  Blazor UI      │  (optional, port 9998)
+     │  Blazor UI      │  (optional, auto-port)
      │  (MudBlazor)    │
      └─────────────────┘
 ```
