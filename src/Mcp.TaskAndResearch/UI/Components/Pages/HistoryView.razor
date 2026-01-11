@@ -1,0 +1,70 @@
+@page "/history"
+
+<MudText Typo="Typo.h5" Class="mb-4">Task History</MudText>
+
+<MudPaper Elevation="2" Class="pa-4 mb-4">
+    <MudStack Row="true" Spacing="4" AlignItems="AlignItems.Center">
+        <MudDateRangePicker @bind-DateRange="_dateRange" 
+                            Label="Date Range"
+                            Variant="Variant.Outlined"
+                            Margin="Margin.Dense" />
+        <MudSelect @bind-Value="_statusFilter"
+                   Label="Status Filter"
+                   Variant="Variant.Outlined"
+                   Margin="Margin.Dense">
+            <MudSelectItem Value="@((Data.TaskStatus?)null)">All</MudSelectItem>
+            @foreach (var status in Enum.GetValues<Data.TaskStatus>())
+            {
+                <MudSelectItem Value="@((Data.TaskStatus?)status)">@status</MudSelectItem>
+            }
+        </MudSelect>
+        <MudSpacer />
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                       OnClick="LoadHistoryAsync" 
+                       Title="Refresh" />
+    </MudStack>
+</MudPaper>
+
+@if (_isLoading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_historyItems.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No history items found.</MudAlert>
+}
+else
+{
+    <MudTimeline TimelinePosition="TimelinePosition.Start">
+        @foreach (var item in _historyItems)
+        {
+            <MudTimelineItem Color="@GetStatusColor(item.Status)" 
+                             Size="Size.Medium"
+                             Icon="@GetStatusIcon(item.Status)">
+                <ItemOpposite>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        @item.Timestamp.ToString("g")
+                    </MudText>
+                </ItemOpposite>
+                <ItemContent>
+                    <MudCard Elevation="1" Class="pa-3">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1">@item.TaskName</MudText>
+                            <MudChip T="string" 
+                                     Color="@GetStatusColor(item.Status)" 
+                                     Size="Size.Small">
+                                @item.Status
+                            </MudChip>
+                            @if (!string.IsNullOrEmpty(item.Summary))
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    @item.Summary
+                                </MudText>
+                            }
+                        </MudStack>
+                    </MudCard>
+                </ItemContent>
+            </MudTimelineItem>
+        }
+    </MudTimeline>
+}

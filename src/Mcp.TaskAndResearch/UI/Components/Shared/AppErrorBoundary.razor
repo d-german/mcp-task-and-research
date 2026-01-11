@@ -1,0 +1,25 @@
+@inherits ErrorBoundary
+
+@if (CurrentException is not null)
+{
+    <MudPaper Class="pa-6 ma-4" Elevation="3">
+        <MudStack AlignItems="AlignItems.Center" Spacing="4">
+            <MudIcon Icon="@Icons.Material.Filled.Error" Color="Color.Error" Size="Size.Large" />
+            <MudText Typo="Typo.h5" Color="Color.Error">Something went wrong</MudText>
+            <MudText Typo="Typo.body1" Class="mud-text-secondary">
+                An unexpected error occurred. Please try again or refresh the page.
+            </MudText>
+            <MudText Typo="Typo.caption" Class="mud-text-secondary">
+                @CurrentException.Message
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Recover">
+                <MudIcon Icon="@Icons.Material.Filled.Refresh" Class="mr-2" />
+                Try Again
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+}
+else
+{
+    @ChildContent
+}

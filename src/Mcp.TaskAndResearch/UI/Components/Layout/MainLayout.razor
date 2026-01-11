@@ -1,0 +1,55 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider @bind-IsDarkMode="_isDarkMode" Theme="@Theme.AppTheme.Theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" 
+                       Color="Color.Inherit" 
+                       Edge="Edge.Start" 
+                       OnClick="ToggleDrawer" />
+        <MudHidden Breakpoint="Breakpoint.Xs">
+            <MudText Typo="Typo.h6" Class="ml-3">Task Manager</MudText>
+        </MudHidden>
+        <MudHidden Breakpoint="Breakpoint.SmAndUp" Invert="true">
+            <MudText Typo="Typo.h6" Class="ml-3">TM</MudText>
+        </MudHidden>
+        <MudSpacer />
+        <MudHidden Breakpoint="Breakpoint.Xs">
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                           Color="Color.Inherit" 
+                           OnClick="OnRefreshClicked" />
+        </MudHidden>
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)" 
+                       Color="Color.Inherit" 
+                       OnClick="ToggleDarkMode" />
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" 
+               Elevation="2" 
+               Variant="@_drawerVariant"
+               OpenMiniOnHover="@(!_isMobileLayout)"
+               ClipMode="DrawerClipMode.Always">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="/tasks" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Task">Tasks</MudNavLink>
+            <MudNavLink Href="/history" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.History">History</MudNavLink>
+            <MudNavLink Href="/agents" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.SmartToy">Agents</MudNavLink>
+            <MudNavLink Href="/templates" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Description">Templates</MudNavLink>
+            <MudNavLink Href="/settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+        <MudMainContent Class="@GetMainContentClass()">
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4 pb-4">
+            <AppErrorBoundary @ref="_errorBoundary">
+                @Body
+            </AppErrorBoundary>
+        </MudContainer>
+    </MudMainContent>
+    <LoadingOverlay IsLoading="@_loadingService.IsLoading" Message="@_loadingService.Message" />
+</MudLayout>
+
+<MudBreakpointProvider OnBreakpointChanged="OnBreakpointChanged" />
+<KeyboardShortcuts OnRefresh="OnRefreshClicked" />

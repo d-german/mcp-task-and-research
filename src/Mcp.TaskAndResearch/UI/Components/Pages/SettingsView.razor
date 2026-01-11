@@ -1,0 +1,138 @@
+@page "/settings"
+
+<MudText Typo="Typo.h5" Class="mb-4">Settings</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Palette" Class="mr-2" />
+                Appearance
+            </MudText>
+            
+            <MudStack Spacing="4">
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText>Dark Mode</MudText>
+                    <MudSwitch @bind-Value="_settings.IsDarkMode" 
+                               Color="Color.Primary"
+                               UnCheckedColor="Color.Default" />
+                </MudStack>
+                
+                <MudSelect @bind-Value="_settings.Theme"
+                           Label="Theme"
+                           Variant="Variant.Outlined">
+                    <MudSelectItem Value="@("default")">Default</MudSelectItem>
+                    <MudSelectItem Value="@("ocean")">Ocean Blue</MudSelectItem>
+                    <MudSelectItem Value="@("forest")">Forest Green</MudSelectItem>
+                    <MudSelectItem Value="@("sunset")">Sunset Orange</MudSelectItem>
+                </MudSelect>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Language" Class="mr-2" />
+                Localization
+            </MudText>
+            
+            <MudSelect @bind-Value="_settings.Language"
+                       Label="Language"
+                       Variant="Variant.Outlined">
+                <MudSelectItem Value="@("en")">English</MudSelectItem>
+                <MudSelectItem Value="@("de")">Deutsch</MudSelectItem>
+                <MudSelectItem Value="@("es")">Español</MudSelectItem>
+                <MudSelectItem Value="@("fr")">Français</MudSelectItem>
+                <MudSelectItem Value="@("ja")">日本語</MudSelectItem>
+                <MudSelectItem Value="@("zh")">中文</MudSelectItem>
+            </MudSelect>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Refresh" Class="mr-2" />
+                Auto-Refresh
+            </MudText>
+            
+            <MudStack Spacing="4">
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText>Enable Auto-Refresh</MudText>
+                    <MudSwitch @bind-Value="_settings.AutoRefreshEnabled" 
+                               Color="Color.Primary" />
+                </MudStack>
+                
+                <MudNumericField @bind-Value="_settings.AutoRefreshInterval"
+                                 Label="Refresh Interval (seconds)"
+                                 Variant="Variant.Outlined"
+                                 Min="5"
+                                 Max="300"
+                                 Step="5"
+                                 Disabled="@(!_settings.AutoRefreshEnabled)" />
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" md="6">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Notifications" Class="mr-2" />
+                Notifications
+            </MudText>
+            
+            <MudStack Spacing="4">
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText>Show Notifications</MudText>
+                    <MudSwitch @bind-Value="_settings.ShowNotifications" 
+                               Color="Color.Primary" />
+                </MudStack>
+                
+                <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                    <MudText>Play Sound</MudText>
+                    <MudSwitch @bind-Value="_settings.PlaySound" 
+                               Color="Color.Primary"
+                               Disabled="@(!_settings.ShowNotifications)" />
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.Storage" Class="mr-2" />
+                Data
+            </MudText>
+            
+            <MudStack Row="true" Spacing="4">
+                <MudButton Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportSettings">
+                    Export Settings
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.Upload"
+                           OnClick="ImportSettings">
+                    Import Settings
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Warning"
+                           StartIcon="@Icons.Material.Filled.RestartAlt"
+                           OnClick="ResetToDefaults">
+                    Reset to Defaults
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-4">
+    <MudButton Variant="Variant.Filled"
+               Color="Color.Primary"
+               StartIcon="@Icons.Material.Filled.Save"
+               OnClick="SaveSettings">
+        Save Settings
+    </MudButton>
+</MudStack>

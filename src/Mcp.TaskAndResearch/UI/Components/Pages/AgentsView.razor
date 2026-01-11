@@ -1,0 +1,102 @@
+@page "/agents"
+
+<MudText Typo="Typo.h5" Class="mb-4">AI Agents</MudText>
+
+<MudPaper Elevation="2" Class="pa-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mb-4">
+        <MudText Typo="Typo.h6">Configured Agents</MudText>
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="OpenAddDialog">
+            Add Agent
+        </MudButton>
+    </MudStack>
+
+    <MudTable Items="@_agents" 
+              Hover="true" 
+              Striped="true"
+              Dense="true"
+              Elevation="0">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Model</MudTh>
+            <MudTh Style="width: 150px;">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                    <MudIcon Icon="@Icons.Material.Filled.SmartToy" Size="Size.Small" Color="Color.Primary" />
+                    @context.Name
+                </MudStack>
+            </MudTd>
+            <MudTd DataLabel="Description">@context.Description</MudTd>
+            <MudTd DataLabel="Model">
+                <MudChip T="string" Size="Size.Small" Color="Color.Info">@context.Model</MudChip>
+            </MudTd>
+            <MudTd DataLabel="Actions">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                               Size="Size.Small"
+                               OnClick="@(() => OpenEditDialog(context))"
+                               Title="Edit" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                               Size="Size.Small"
+                               Color="Color.Error"
+                               OnClick="@(() => DeleteAgent(context))"
+                               Title="Delete" />
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No agents configured. Click "Add Agent" to create one.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+<MudDialog @bind-Visible="_showDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            @(_isEditMode ? "Edit Agent" : "Add Agent")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudStack Spacing="3">
+                <MudTextField @bind-Value="_editModel.Name"
+                              Label="Name"
+                              Required="true"
+                              RequiredError="Name is required"
+                              Variant="Variant.Outlined" />
+                <MudTextField @bind-Value="_editModel.Description"
+                              Label="Description"
+                              Lines="2"
+                              Variant="Variant.Outlined" />
+                <MudSelect @bind-Value="_editModel.Model"
+                           Label="Model"
+                           Variant="Variant.Outlined"
+                           Required="true"
+                           RequiredError="Model is required">
+                    <MudSelectItem Value="@("claude-3-opus")">Claude 3 Opus</MudSelectItem>
+                    <MudSelectItem Value="@("claude-3-sonnet")">Claude 3 Sonnet</MudSelectItem>
+                    <MudSelectItem Value="@("claude-3-haiku")">Claude 3 Haiku</MudSelectItem>
+                    <MudSelectItem Value="@("gpt-4")">GPT-4</MudSelectItem>
+                    <MudSelectItem Value="@("gpt-4-turbo")">GPT-4 Turbo</MudSelectItem>
+                    <MudSelectItem Value="@("custom")">Custom</MudSelectItem>
+                </MudSelect>
+                <MudTextField @bind-Value="_editModel.SystemPrompt"
+                              Label="System Prompt (Optional)"
+                              Lines="4"
+                              Variant="Variant.Outlined" />
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CloseDialog">Cancel</MudButton>
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   OnClick="SaveAgent"
+                   Disabled="@(!_isValid)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>

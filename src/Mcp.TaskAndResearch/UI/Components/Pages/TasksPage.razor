@@ -1,0 +1,109 @@
+@page "/tasks"
+
+<MudText Typo="Typo.h5" Class="mb-4">Tasks</MudText>
+
+<StatsBar TotalCount="@_tasks.Length"
+          PendingCount="@_tasks.Count(t => t.Status == Data.TaskStatus.Pending)"
+          InProgressCount="@_tasks.Count(t => t.Status == Data.TaskStatus.InProgress)"
+          CompletedCount="@_tasks.Count(t => t.Status == Data.TaskStatus.Completed)"
+          BlockedCount="@_tasks.Count(t => t.Status == Data.TaskStatus.Blocked)"
+          @bind-SearchString="_searchString"
+          @bind-AutoRefreshEnabled="_autoRefreshEnabled"
+          AutoRefreshInterval="@_autoRefreshInterval"
+          OnRefresh="LoadTasksAsync" />
+
+<MudPaper Elevation="2" Class="pa-4">
+    @if (_isLoading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mb-4" />
+    }
+    
+    <MudDataGrid T="TaskItem" 
+                 Items="@_tasks" 
+                 SortMode="SortMode.Multiple"
+                 Filterable="true"
+                 FilterMode="DataGridFilterMode.Simple"
+                 QuickFilter="@_quickFilter"
+                 Hideable="true"
+                 Striped="true"
+                 Hover="true"
+                 Dense="true"
+                 Loading="@_isLoading"
+                 RowClick="@OnRowClick"
+                 RowsPerPage="15">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Task List</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="_searchString" 
+                          Placeholder="Search" 
+                          Adornment="Adornment.Start" 
+                          AdornmentIcon="@Icons.Material.Filled.Search" 
+                          IconSize="Size.Medium" 
+                          Class="mt-0"
+                          Immediate="true" />
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                           OnClick="LoadTasksAsync" 
+                           Title="Refresh" 
+                           Class="ml-2" />
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="x => x.Name" Title="Name" Sortable="true" Filterable="true">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.Description">
+                        <MudText>@context.Item.Name</MudText>
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Status" Title="Status" Sortable="true" Filterable="true">
+                <CellTemplate>
+                    <MudChip T="string" 
+                             Color="@GetStatusColor(context.Item.Status)" 
+                             Size="Size.Small"
+                             Icon="@GetStatusIcon(context.Item.Status)">
+                        @context.Item.Status
+                    </MudChip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Agent" Title="Agent" Sortable="true" Filterable="true">
+                <CellTemplate>
+                    @(context.Item.Agent ?? "-")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CreatedAt" Title="Created" Sortable="true" Format="g">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.CreatedAt.ToString("F")">
+                        @FormatRelativeTime(context.Item.CreatedAt)
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Dependencies.Length" Title="Deps" Sortable="true">
+                <CellTemplate>
+                    @if (context.Item.Dependencies.Length > 0)
+                    {
+                        <MudBadge Content="@context.Item.Dependencies.Length" Color="Color.Info" Overlap="false">
+                            <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" />
+                        </MudBadge>
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+            <TemplateColumn Title="Actions" Sortable="false" Filterable="false">
+                <CellTemplate>
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" 
+                                   Size="Size.Small" 
+                                   OnClick="@(() => ViewTaskAsync(context.Item))"
+                                   Title="View Details" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                   Size="Size.Small" 
+                                   OnClick="@(() => EditTaskAsync(context.Item))"
+                                   Title="Edit" />
+                </CellTemplate>
+            </TemplateColumn>
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="TaskItem" />
+        </PagerContent>
+        <NoRecordsContent>
+            <MudText>No tasks found.</MudText>
+        </NoRecordsContent>
+    </MudDataGrid>
+</MudPaper>

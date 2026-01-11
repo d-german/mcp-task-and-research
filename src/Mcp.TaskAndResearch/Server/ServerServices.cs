@@ -23,6 +23,7 @@ internal static class ServerServices
         services.AddSingleton<DataPathProvider>();
         services.AddSingleton<MemoryStore>();
         services.AddSingleton<TaskStore>();
+        services.AddSingleton<ITaskReader>(sp => sp.GetRequiredService<TaskStore>());
         services.AddSingleton<RulesStore>();
         services.AddSingleton<TaskSearchService>();
         services.AddSingleton<PromptTemplateLoader>();
@@ -48,6 +49,10 @@ internal static class ServerServices
         services.AddSingleton<TaskWorkflowService>();
         services.AddSingleton(metadata);
         services.AddSingleton<McpServerAccessor>();
+        
+        // UI Services
+        services.AddScoped<UI.Services.LoadingService>();
+        services.AddScoped<UI.Services.NotificationService>();
 
         services.AddMcpServer(options =>
             {

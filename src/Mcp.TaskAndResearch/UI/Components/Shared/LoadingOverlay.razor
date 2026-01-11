@@ -1,0 +1,12 @@
+@if (IsLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudStack AlignItems="AlignItems.Center" Spacing="3">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+            @if (!string.IsNullOrEmpty(Message))
+            {
+                <MudText Typo="Typo.body1" Color="Color.Default">@Message</MudText>
+            }
+        </MudStack>
+    </MudOverlay>
+}

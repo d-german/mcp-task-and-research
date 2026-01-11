@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace Mcp.TaskAndResearch.Data;
 
 [JsonConverter(typeof(TaskStatusJsonConverter))]
-internal enum TaskStatus
+public enum TaskStatus
 {
     Pending,
     InProgress,
@@ -12,7 +12,7 @@ internal enum TaskStatus
     Blocked
 }
 
-internal enum RelatedFileType
+public enum RelatedFileType
 {
     TO_MODIFY,
     REFERENCE,
@@ -21,12 +21,12 @@ internal enum RelatedFileType
     OTHER
 }
 
-internal sealed record TaskDependency
+public sealed record TaskDependency
 {
     public required string TaskId { get; init; }
 }
 
-internal sealed record RelatedFile
+public sealed record RelatedFile
 {
     public required string Path { get; init; }
     public required RelatedFileType Type { get; init; }
@@ -35,7 +35,7 @@ internal sealed record RelatedFile
     public int? LineEnd { get; init; }
 }
 
-internal sealed record TaskItem
+public sealed record TaskItem
 {
     public required string Id { get; init; }
     public required string Name { get; init; }

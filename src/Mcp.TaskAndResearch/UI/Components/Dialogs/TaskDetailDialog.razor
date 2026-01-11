@@ -1,0 +1,136 @@
+@using Mcp.TaskAndResearch.Data
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Task" Class="mr-2" />
+            @(_isEditMode ? "Edit Task" : "Task Details")
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_form" @bind-IsValid="_isValid">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Name"
+                                  Label="Name"
+                                  Required="true"
+                                  RequiredError="Name is required"
+                                  Variant="Variant.Outlined"
+                                  ReadOnly="@(!_isEditMode)" />
+                </MudItem>
+                
+                <MudItem xs="12" sm="6">
+                    <MudSelect @bind-Value="_model.Status"
+                               Label="Status"
+                               Variant="Variant.Outlined"
+                               Disabled="@(!_isEditMode)">
+                        @foreach (var status in Enum.GetValues<Data.TaskStatus>())
+                        {
+                            <MudSelectItem Value="@status">@status</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                
+                <MudItem xs="12" sm="6">
+                    <MudTextField @bind-Value="_model.Agent"
+                                  Label="Agent"
+                                  Variant="Variant.Outlined"
+                                  ReadOnly="@(!_isEditMode)" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Description"
+                                  Label="Description"
+                                  Lines="3"
+                                  Variant="Variant.Outlined"
+                                  ReadOnly="@(!_isEditMode)" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.ImplementationGuide"
+                                  Label="Implementation Guide"
+                                  Lines="4"
+                                  Variant="Variant.Outlined"
+                                  ReadOnly="@(!_isEditMode)" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.VerificationCriteria"
+                                  Label="Verification Criteria"
+                                  Lines="2"
+                                  Variant="Variant.Outlined"
+                                  ReadOnly="@(!_isEditMode)" />
+                </MudItem>
+                
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_model.Notes"
+                                  Label="Notes"
+                                  Lines="3"
+                                  Variant="Variant.Outlined"
+                                  ReadOnly="@(!_isEditMode)" />
+                </MudItem>
+                
+                @if (Task.Dependencies.Length > 0)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Dependencies</MudText>
+                        <MudChipSet T="string" ReadOnly="true">
+                            @foreach (var dep in Task.Dependencies)
+                            {
+                                <MudChip T="string" Color="Color.Info" Size="Size.Small">@dep.TaskId</MudChip>
+                            }
+                        </MudChipSet>
+                    </MudItem>
+                }
+                
+                @if (Task.RelatedFiles.Length > 0)
+                {
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Related Files</MudText>
+                        <MudList T="RelatedFile" Dense="true">
+                            @foreach (var file in Task.RelatedFiles)
+                            {
+                                <MudListItem Icon="@Icons.Material.Filled.InsertDriveFile">
+                                    <MudText Typo="Typo.body2">@file.Path</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@file.Type</MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    </MudItem>
+                }
+                
+                <MudItem xs="12">
+                    <MudDivider Class="my-2" />
+                    <MudGrid>
+                        <MudItem xs="12" sm="4">
+                            <MudText Typo="Typo.caption">ID: @Task.Id</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudText Typo="Typo.caption">Created: @Task.CreatedAt.ToString("g")</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudText Typo="Typo.caption">Updated: @Task.UpdatedAt.ToString("g")</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        @if (_isEditMode)
+        {
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton Color="Color.Primary" 
+                       Variant="Variant.Filled" 
+                       OnClick="Save"
+                       Disabled="@(!_isValid)">
+                Save
+            </MudButton>
+        }
+        else
+        {
+            <MudButton OnClick="EnableEdit" Color="Color.Primary">Edit</MudButton>
+            <MudButton OnClick="Close">Close</MudButton>
+        }
+    </DialogActions>
+</MudDialog>

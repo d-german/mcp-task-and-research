@@ -1,0 +1,114 @@
+/* Task Manager UI - Custom Styles */
+
+/* Ensure MudBlazor content fills viewport */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* Custom scrollbar for dark mode */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Task status colors */
+.status-pending {
+    color: #ff9800;
+}
+
+.status-in-progress {
+    color: #2196f3;
+}
+
+.status-completed {
+    color: #4caf50;
+}
+
+.status-blocked {
+    color: #f44336;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .mud-main-content {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+    
+    .mud-table-container {
+        overflow-x: auto;
+    }
+    
+    .mud-data-grid .mud-table-cell {
+        white-space: nowrap;
+    }
+    
+    /* Stack stats bar chips vertically on mobile */
+    .stats-bar .mud-stack-row {
+        flex-wrap: wrap;
+        gap: 4px !important;
+    }
+    
+    /* Reduce padding on mobile */
+    .mud-paper {
+        padding: 12px !important;
+    }
+}
+
+@media (max-width: 960px) {
+    /* Hide less important columns on tablets */
+    .hide-on-tablet {
+        display: none !important;
+    }
+}
+
+@media (min-width: 601px) {
+    /* Smooth drawer transitions on desktop */
+    .mud-drawer {
+        transition: width 0.2s ease-in-out;
+    }
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Code block styling */
+.code-block {
+    font-family: 'Roboto Mono', monospace;
+    background-color: #1e1e1e;
+    border-radius: 4px;
+    padding: 12px;
+    overflow-x: auto;
+}
+
+/* Task card hover effect */
+.task-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease-in-out;
+}

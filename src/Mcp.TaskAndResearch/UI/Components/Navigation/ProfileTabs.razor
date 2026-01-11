@@ -1,0 +1,37 @@
+<MudDynamicTabs @ref="_tabs"
+                Elevation="2"
+                Rounded="true"
+                ApplyEffectsToContainer="true"
+                PanelClass="pa-4"
+                AddTab="@AddProfile"
+                CloseTab="@CloseProfile"
+                AddIconToolTip="Add Profile"
+                CloseIconToolTip="Close Profile">
+    @foreach (var profile in _profiles)
+    {
+        <MudTabPanel ID="@profile.Id" Text="@profile.Name" Tag="@profile">
+            <MudText Typo="Typo.subtitle1" Class="mb-4">Profile: @profile.Name</MudText>
+            @ChildContent
+        </MudTabPanel>
+    }
+</MudDynamicTabs>
+
+<MudDialog @bind-Visible="_showRenameDialog">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Rename Profile</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudTextField @bind-Value="_newProfileName" 
+                      Label="Profile Name" 
+                      Variant="Variant.Outlined"
+                      Immediate="true" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="CancelRename">Cancel</MudButton>
+        <MudButton Color="Color.Primary" 
+                   OnClick="ConfirmRename"
+                   Disabled="@string.IsNullOrWhiteSpace(_newProfileName)">
+            Save
+        </MudButton>
+    </DialogActions>
+</MudDialog>

@@ -1,0 +1,48 @@
+<MudPaper Elevation="1" Class="pa-3 mb-4">
+    <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+        <MudStack Row="true" Spacing="2">
+            <MudChip T="string" Color="Color.Default" Icon="@Icons.Material.Filled.List" Size="Size.Small">
+                Total: @TotalCount
+            </MudChip>
+            <MudChip T="string" Color="Color.Warning" Icon="@Icons.Material.Outlined.Schedule" Size="Size.Small">
+                Pending: @PendingCount
+            </MudChip>
+            <MudChip T="string" Color="Color.Info" Icon="@Icons.Material.Outlined.PlayArrow" Size="Size.Small">
+                In Progress: @InProgressCount
+            </MudChip>
+            <MudChip T="string" Color="Color.Success" Icon="@Icons.Material.Outlined.CheckCircle" Size="Size.Small">
+                Completed: @CompletedCount
+            </MudChip>
+            @if (BlockedCount > 0)
+            {
+                <MudChip T="string" Color="Color.Error" Icon="@Icons.Material.Outlined.Block" Size="Size.Small">
+                    Blocked: @BlockedCount
+                </MudChip>
+            }
+        </MudStack>
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+            <MudTextField @bind-Value="_searchString" 
+                          Placeholder="Search tasks..." 
+                          Adornment="Adornment.Start" 
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          Immediate="true"
+                          DebounceInterval="300"
+                          OnDebounceIntervalElapsed="OnSearchChanged"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Class="search-field" />
+            <MudTooltip Text="@(AutoRefreshEnabled ? $"Auto-refresh every {AutoRefreshInterval}s" : "Auto-refresh off")">
+                <MudSwitch T="bool" 
+                           Value="AutoRefreshEnabled"
+                           ValueChanged="OnAutoRefreshToggled"
+                           Color="Color.Primary"
+                           UncheckedColor="Color.Default"
+                           ThumbIcon="@Icons.Material.Filled.Autorenew"
+                           Size="Size.Small" />
+            </MudTooltip>
+            <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                           OnClick="OnRefreshClicked" 
+                           Color="Color.Primary" />
+        </MudStack>
+    </MudStack>
+</MudPaper>

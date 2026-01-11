@@ -3,12 +3,17 @@ using System.Text.Json;
 
 namespace Mcp.TaskAndResearch.Data;
 
-internal sealed class TaskStore
+internal sealed class TaskStore : ITaskReader
 {
     private readonly DataPathProvider _pathProvider;
     private readonly MemoryStore _memoryStore;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly TimeProvider _timeProvider;
+
+    /// <summary>
+    /// Event raised when tasks are created, updated, deleted, or cleared.
+    /// </summary>
+    public event Action<TaskChangeEventArgs>? OnTaskChanged;
 
     public TaskStore(DataPathProvider pathProvider, MemoryStore memoryStore, TimeProvider? timeProvider = null)
     {
@@ -58,6 +63,7 @@ internal sealed class TaskStore
         };
 
         await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        OnTaskChanged?.Invoke(TaskChangeEventArgs.Created(task));
         return task;
     }
 
@@ -78,6 +84,7 @@ internal sealed class TaskStore
         };
 
         await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        OnTaskChanged?.Invoke(TaskChangeEventArgs.Updated(updated));
         return updated;
     }
 
@@ -90,12 +97,14 @@ internal sealed class TaskStore
             return false;
         }
 
+        var deletedTask = document.Tasks[index];
         var updatedDocument = document with
         {
             Tasks = document.Tasks.RemoveAt(index)
         };
 
         await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        OnTaskChanged?.Invoke(TaskChangeEventArgs.Deleted(deletedTask));
         return true;
     }
 
@@ -111,6 +120,7 @@ internal sealed class TaskStore
         var backupFile = await _memoryStore.WriteSnapshotAsync(completedTasks).ConfigureAwait(false);
 
         await WriteDocumentAsync(TaskDocument.Empty).ConfigureAwait(false);
+        OnTaskChanged?.Invoke(TaskChangeEventArgs.Cleared());
 
         return new ClearAllResult(true, "Tasks cleared.", backupFile);
     }
