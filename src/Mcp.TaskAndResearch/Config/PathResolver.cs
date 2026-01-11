@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 
 namespace Mcp.TaskAndResearch.Config;
 
@@ -6,28 +7,60 @@ internal sealed class PathResolver
 {
     private readonly WorkspaceRootStore _rootStore;
     private readonly ConfigReader _configReader;
+    private readonly ILogger<PathResolver> _logger;
 
-    public PathResolver(WorkspaceRootStore rootStore, ConfigReader configReader)
+    public PathResolver(WorkspaceRootStore rootStore, ConfigReader configReader, ILogger<PathResolver> logger)
     {
         _rootStore = rootStore;
         _configReader = configReader;
+        _logger = logger;
     }
 
     public string ResolveDataDirectory()
     {
         var dataDir = _configReader.GetDataDirectorySetting();
+        var usedDefault = false;
+        
         if (string.IsNullOrWhiteSpace(dataDir))
         {
-            dataDir = "data";
+            // Use platform-appropriate default for global tool
+            dataDir = GetDefaultDataDirectory();
+            usedDefault = true;
         }
 
+        string resolvedPath;
         if (Path.IsPathRooted(dataDir))
         {
-            return dataDir;
+            resolvedPath = dataDir;
+        }
+        else
+        {
+            var workspaceRoot = ResolveWorkspaceRoot();
+            resolvedPath = Path.Combine(workspaceRoot, dataDir);
         }
 
-        var workspaceRoot = ResolveWorkspaceRoot();
-        return Path.Combine(workspaceRoot, dataDir);
+        if (usedDefault)
+        {
+            _logger.LogInformation("Using default data directory: {DataDirectory}", resolvedPath);
+        }
+
+        return resolvedPath;
+    }
+
+    private static string GetDefaultDataDirectory()
+    {
+        // For global tool installation, use a user-specific directory
+        if (OperatingSystem.IsWindows())
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            return Path.Combine(localAppData, "mcp-task-and-research");
+        }
+        else
+        {
+            // Linux/Mac: ~/.mcp-task-and-research
+            var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            return Path.Combine(homeDir, ".mcp-task-and-research");
+        }
     }
 
     public string ResolveWorkspaceRoot()

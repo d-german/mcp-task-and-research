@@ -18,7 +18,7 @@ public partial class TaskDetailDialog : ComponentBase
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
-    private readonly MudForm _form = default!;
+    private MudForm _form = default!;
     private bool _isValid;
     private bool _isEditMode;
     private EditTaskModel _model = new();

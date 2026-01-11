@@ -5,7 +5,28 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- NuGet Tool Packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mcp-task-and-research</ToolCommandName>
+    <IsPackable>true</IsPackable>
+    
+    <!-- Package Metadata -->
+    <PackageId>Mcp.TaskAndResearch</PackageId>
+    <Version>1.0.0-beta1</Version>
+    <Authors>d-german</Authors>
+    <Description>MCP server for task management and research. Provides structured task planning, execution tracking, and research mode capabilities for AI coding assistants.</Description>
+    <PackageProjectUrl>https://github.com/d-german/mcp-task-and-research</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/d-german/mcp-task-and-research</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>mcp;model-context-protocol;task-management;research;ai-assistant</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1" />
@@ -15,6 +36,12 @@
 
   <ItemGroup>
     <Content Include="Prompts\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="wwwroot\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
