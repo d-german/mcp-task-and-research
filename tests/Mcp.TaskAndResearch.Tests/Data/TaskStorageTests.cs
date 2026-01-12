@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Mcp.TaskAndResearch.Config;
+using Microsoft.Extensions.Logging.Abstractions;
 using Mcp.TaskAndResearch.Data;
 using Mcp.TaskAndResearch.Tests.TestSupport;
 using TaskStatus = Mcp.TaskAndResearch.Data.TaskStatus;
@@ -126,7 +127,7 @@ public sealed class TaskStorageTests
 
     private static (TaskStore TaskStore, MemoryStore MemoryStore, TaskSearchService SearchService) CreateStores()
     {
-        var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader());
+        var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader(), NullLogger<PathResolver>.Instance);
         var pathProvider = new DataPathProvider(resolver);
         var memoryStore = new MemoryStore(pathProvider);
         var taskStore = new TaskStore(pathProvider, memoryStore);

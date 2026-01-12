@@ -3,6 +3,7 @@ using Mcp.TaskAndResearch.Data;
 using Mcp.TaskAndResearch.Prompts;
 using Mcp.TaskAndResearch.Tests.TestSupport;
 using Mcp.TaskAndResearch.Tools.Task;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using TaskStatus = Mcp.TaskAndResearch.Data.TaskStatus;
 
@@ -242,7 +243,7 @@ public sealed class TaskToolsTests
 
     private static ToolTestContext CreateContext()
     {
-        var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader());
+        var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader(), NullLogger<PathResolver>.Instance);
         var pathProvider = new DataPathProvider(resolver);
         var loader = new PromptTemplateLoader(resolver);
         var memoryStore = new MemoryStore(pathProvider);

@@ -3,6 +3,7 @@ using Mcp.TaskAndResearch.Data;
 using Mcp.TaskAndResearch.Prompts;
 using Mcp.TaskAndResearch.Tests.TestSupport;
 using Mcp.TaskAndResearch.Tools.Research;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Mcp.TaskAndResearch.Tests.Tools;
 
@@ -14,7 +15,7 @@ public sealed class ResearchModeTests
         using var temp = new TempDirectory();
         using var env = CreateEnvScope(temp.Path);
 
-        var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader());
+        var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader(), NullLogger<PathResolver>.Instance);
         var pathProvider = new DataPathProvider(resolver);
         var loader = new PromptTemplateLoader(resolver);
         var builder = new ResearchPromptBuilder(loader, pathProvider);
