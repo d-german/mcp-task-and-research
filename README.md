@@ -14,6 +14,12 @@ Install as a global .NET tool - no cloning required:
 dotnet tool install -g Mcp.TaskAndResearch
 ```
 
+After installation, run `mcp-task-and-research --help` to see setup instructions:
+
+```bash
+mcp-task-and-research --help
+```
+
 Then configure VS Code (see [Configuration](#configuration) below).
 
 **Update:**

@@ -11,7 +11,7 @@ await ServerHost.RunAsync(args);
 static void PrintHelp()
 {
     Console.WriteLine("""
-    MCP Task and Research Server v1.0.1
+    MCP Task and Research Server v1.0.2
     ====================================
     A Model Context Protocol (MCP) server for task management and research workflows.
 
