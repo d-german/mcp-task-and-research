@@ -332,5 +332,12 @@ mcp-config.json
 !.serena/
 .serena/cache/
 
-# MCP Tasks - track task JSON files and memory
+# MCP Tasks - track task JSON files but ignore auto-generated memory snapshots
 !.mcp-tasks/
+.mcp-tasks/memory/
+
+# Playwright MCP tool artifacts (screenshots, recordings)
+.playwright-mcp/
+
+# Temporary package extraction folders
+test-pack-extracted/
