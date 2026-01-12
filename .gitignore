@@ -170,6 +170,9 @@ PublishScripts/
 *.nuget.props
 *.nuget.targets
 
+# Local NuGet package testing
+test-pack/
+
 # Microsoft Azure Build Output
 csx/
 *.build.csdef
