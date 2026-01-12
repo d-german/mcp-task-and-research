@@ -13,7 +13,7 @@
     
     <!-- Package Metadata -->
     <PackageId>Mcp.TaskAndResearch</PackageId>
-    <Version>1.0.6</Version>
+    <Version>1.0.8</Version>
     <Authors>d-german</Authors>
     <Description>MCP server for task management and research. Provides structured task planning, execution tracking, and research mode capabilities for AI coding assistants.</Description>
     <PackageProjectUrl>https://github.com/d-german/mcp-task-and-research</PackageProjectUrl>
@@ -47,16 +47,24 @@
     </Content>
   </ItemGroup>
 
-  <!-- Include wwwroot static files and static web asset manifests in NuGet tool package -->
+  <!-- Include wwwroot static files in NuGet tool package -->
   <Target Name="AddWwwrootToToolPackage" AfterTargets="Build" BeforeTargets="GenerateNuspec">
     <ItemGroup>
       <!-- wwwroot content files -->
       <TfmSpecificPackageFile Include="$(OutputPath)wwwroot\**\*">
         <PackagePath>tools\$(TargetFramework)\any\wwwroot\%(RecursiveDir)%(Filename)%(Extension)</PackagePath>
       </TfmSpecificPackageFile>
-      <!-- Static web assets manifests for Razor Class Libraries (MudBlazor, etc.) -->
-      <TfmSpecificPackageFile Include="$(OutputPath)*.staticwebassets.*.json">
-        <PackagePath>tools\$(TargetFramework)\any\%(Filename)%(Extension)</PackagePath>
+    </ItemGroup>
+  </Target>
+
+  <!-- Include MudBlazor static assets in NuGet tool package for global tool compatibility -->
+  <Target Name="AddMudBlazorToToolPackage" AfterTargets="Build" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(NuGetPackageRoot)mudblazor\8.0.0\staticwebassets\MudBlazor.min.css">
+        <PackagePath>tools\$(TargetFramework)\any\wwwroot\_content\MudBlazor\MudBlazor.min.css</PackagePath>
+      </TfmSpecificPackageFile>
+      <TfmSpecificPackageFile Include="$(NuGetPackageRoot)mudblazor\8.0.0\staticwebassets\MudBlazor.min.js">
+        <PackagePath>tools\$(TargetFramework)\any\wwwroot\_content\MudBlazor\MudBlazor.min.js</PackagePath>
       </TfmSpecificPackageFile>
     </ItemGroup>
   </Target>

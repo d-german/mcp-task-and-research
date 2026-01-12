@@ -66,7 +66,11 @@ internal static class ServerHost
         });
         
         // Enable static web assets from Razor class libraries (like MudBlazor)
-        builder.WebHost.UseStaticWebAssets();
+        // Only use this in development - in production/global tool, assets are bundled in wwwroot
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.WebHost.UseStaticWebAssets();
+        }
         
         var app = builder.Build();
         
