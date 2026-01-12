@@ -1,10 +1,204 @@
 # MCP Task and Research Server
 
-A Model Context Protocol (MCP) server for task management and research workflows, with an optional Blazor Server UI dashboard.
+> 🦐 **A .NET port of [mcp-shrimp-task-manager](https://github.com/cjo4m06/mcp-shrimp-task-manager)** — Intelligent task management for AI-powered development.
+
+A powerful Model Context Protocol (MCP) server built with **.NET 9.0** that provides advanced task management and research capabilities for AI assistants. This server enables structured task planning, dependency management, and guided research workflows — with an optional Blazor Server UI dashboard.
+
+[![NuGet](https://img.shields.io/nuget/v/Mcp.TaskAndResearch)](https://www.nuget.org/packages/Mcp.TaskAndResearch)
 
 ---
 
-## Installation
+## 🌟 Origin & Motivation
+
+This project is a **complete port** of the original [mcp-shrimp-task-manager](https://github.com/cjo4m06/mcp-shrimp-task-manager) from Node.js/TypeScript to C#/.NET 9.0.
+
+### Why This Port Exists
+
+The original Shrimp Task Manager is an excellent concept, but:
+
+- **⚠️ Maintenance Concerns**: The original repository may have periods of inactivity
+- **🔒 Security**: Node.js dependencies can accumulate vulnerabilities over time
+- **🏢 Enterprise Needs**: Many organizations prefer .NET for its enterprise support, type safety, and performance
+- **🔧 Active Development**: This .NET version is actively maintained and updated
+
+### Comparison
+
+| Aspect | Original (Node.js) | This Port (.NET) |
+|--------|-------------------|------------------|
+| **Runtime** | Node.js 18+ | .NET 9.0 |
+| **Installation** | `npm install` + clone | `dotnet tool install -g` ✨ |
+| **Type Safety** | TypeScript | C# (stronger) |
+| **Dependencies** | npm ecosystem | NuGet (curated) |
+| **Performance** | Good | Excellent (compiled, AOT-ready) |
+| **UI** | React Task Viewer | Blazor Server Dashboard |
+
+---
+
+## 💡 What is This?
+
+MCP Task and Research Server transforms how AI agents approach software development. Instead of losing context or repeating work, it provides:
+
+- **🧠 Persistent Memory**: Tasks and progress persist across sessions
+- **📋 Structured Workflows**: Guided processes for planning, execution, and verification
+- **🔄 Smart Decomposition**: Automatically breaks complex tasks into manageable subtasks
+- **🎯 Context Preservation**: Never lose your place, even with token limits
+- **🔗 Dependency Tracking**: Automatic management of task relationships
+
+---
+
+## ✨ Core Features
+
+### 📋 Task Management
+
+| Feature | Description |
+|---------|-------------|
+| **Intelligent Planning** | Deep analysis of requirements before implementation |
+| **Task Decomposition** | Break down large projects into atomic, testable units |
+| **Dependency Resolution** | Automatic resolution by task name or ID |
+| **Progress Monitoring** | Real-time status tracking and updates |
+| **Verification & Scoring** | Score task completion against criteria |
+| **Task History** | Automatic snapshots and backups |
+
+### 🔬 Research Mode
+
+- **Guided Research**: Systematic exploration of technologies and solutions
+- **State Management**: Track research progress across sessions
+- **Next Steps Planning**: Define and follow research directions
+
+### 📏 Project Rules
+
+- **Project Standards**: Define and maintain coding standards across your project
+- **Consistency**: Ensure AI assistants follow your conventions
+
+### 🤔 Thinking Tools
+
+- **Process Thought**: Structured thinking with branching and revision support
+- **Chain-of-Thought**: Encourages reflection and style consistency
+
+### 💾 Memory & Data Management
+
+- **Task Snapshots**: Automatic preservation of task state history
+- **Memory Store**: Dedicated memory management for context storage
+- **Automatic Backups**: Created during clear operations to prevent data loss
+- **Per-Project Isolation**: Each workspace maintains separate task data
+
+### 🖥️ Blazor UI Dashboard
+
+When `TASK_MANAGER_UI=true`:
+- **Tasks View**: DataGrid with sorting, filtering, search, status indicators
+- **Task Details**: Dialog for viewing/editing tasks, dependencies, related files
+- **History View**: Browse all task activity including archived tasks
+- **Settings View**: Configure preferences, theme, language
+- **Dark/Light Theme**: Toggle with persistent preference
+- **Keyboard Shortcuts**: `Ctrl+N`, `Ctrl+F`, `Ctrl+S`, `Ctrl+R`, `Esc`, `?`
+- **Real-time Updates**: Tasks sync instantly between MCP and UI
+
+---
+
+## 🎯 Common Use Cases
+
+<details>
+<summary><b>Feature Development</b></summary>
+
+```
+You: "plan task: add user authentication with JWT"
+# Agent analyzes codebase, creates subtasks with dependencies
+
+You: "execute task"
+# Implements authentication step by step, tracking progress
+```
+</details>
+
+<details>
+<summary><b>Bug Fixing</b></summary>
+
+```
+You: "plan task: fix memory leak in data processing"
+# Agent researches issue, creates fix plan with verification criteria
+
+You: "execute all pending tasks"
+# Executes all fix tasks, verifying each one
+```
+</details>
+
+<details>
+<summary><b>Research & Learning</b></summary>
+
+```
+You: "research: compare Blazor vs React for this project"
+# Systematic analysis with pros/cons, saved to memory
+
+You: "plan task: migrate component to chosen framework"
+# Creates migration plan based on research findings
+```
+</details>
+
+<details>
+<summary><b>Project Setup</b></summary>
+
+```
+You: "init project rules"
+# Establishes coding standards and conventions
+
+You: "plan task: set up CI/CD pipeline"
+# Creates structured plan following your project rules
+```
+</details>
+
+---
+
+## 🛠️ Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `plan_task` | Analyze requirements and create a structured task plan |
+| `split_tasks` | Break down complex tasks into smaller subtasks |
+| `list_tasks` | List all tasks with optional status filter |
+| `execute_task` | Execute a specific task by ID |
+| `verify_task` | Verify task completion with scoring |
+| `update_task` | Update task details, dependencies, or files |
+| `delete_task` | Remove a task by ID |
+| `clear_all_tasks` | Archive and clear all tasks |
+| `query_task` | Search tasks by keyword or ID |
+| `get_task_detail` | Get full details for a specific task |
+| `research_mode` | Enter guided research mode for a topic |
+| `process_thought` | Record structured thinking steps |
+| `init_project_rules` | Initialize project coding standards |
+
+---
+
+## 🚀 Installation
+
+### Option 1: Global Tool (Recommended)
+
+Install as a global .NET tool - no cloning required:
+
+```bash
+dotnet tool install -g Mcp.TaskAndResearch
+```
+
+After installation, run `mcp-task-and-research --help` to see setup instructions:
+
+```bash
+mcp-task-and-research --help
+```
+
+Then configure VS Code (see [Configuration](#configuration) below).
+
+**Update:**
+```bash
+dotnet tool update -g Mcp.TaskAndResearch
+```
+
+### Option 2: Clone & Build
+
+For development or customization:
+
+```bash
+git clone https://github.com/d-german/mcp-task-and-research.git
+cd mcp-task-and-research
+dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
+```
 
 ### Option 1: Global Tool (Recommended)
 
@@ -238,36 +432,14 @@ Add to your project's `.vscode/mcp.json` (create if it doesn't exist):
 
 ---
 
-## Features
+## 📚 History & Task Archival
 
-### MCP Tools
-- **Task Management**: Create, update, split, verify, and manage tasks with dependencies
-- **Research Mode**: In-depth exploration of programming topics
-- **Process Thought**: Record structured reasoning steps
-- **Project Rules**: Initialize and manage project conventions
-
-### Blazor UI Dashboard
-When `TASK_MANAGER_UI=true`:
-- **Tasks View**: DataGrid with sorting, filtering, search, status indicators
-- **Task Details**: Dialog for viewing/editing tasks, dependencies, related files
-- **History View**: Browse all task activity including archived tasks (see below)
-- **Settings View**: Configure preferences, theme, language
-
-#### History & Task Archival
-
-When you clear the task list (via `clear_all_tasks` MCP tool or UI), completed tasks are automatically saved to snapshot files in the `memories/` folder. The **History View** displays:
+When you clear the task list (via `clear_all_tasks` MCP tool or UI), completed tasks are automatically saved to snapshot files in the `memory/` folder. The **History View** displays:
 
 - **Active tasks**: Current tasks from `tasks.json`
 - **Archived tasks**: Previously cleared tasks from all snapshot files
 
 This means you never lose visibility into past work - cleared tasks remain viewable in History indefinitely.
-
-### UI Features
-- **Dark/Light Theme**: Toggle with persistent preference
-- **Keyboard Shortcuts**: `Ctrl+N` (new), `Ctrl+F` (search), `Ctrl+S` (save), `Ctrl+R` (refresh), `Esc` (close), `?` (help)
-- **Responsive Layout**: Mobile-friendly with adaptive navigation
-- **Real-time Updates**: Tasks sync instantly between MCP and UI
-- **Error Handling**: User-friendly error messages with recovery
 
 ---
 
@@ -386,6 +558,21 @@ For **production use**, always use the published DLL - it's faster to start and 
 
 ---
 
-## License
+## 📄 License
 
-MIT License - See LICENSE file for details
+MIT License - See LICENSE file for details.
+
+---
+
+## 🌟 Credits
+
+- **Original Concept**: [mcp-shrimp-task-manager](https://github.com/cjo4m06/mcp-shrimp-task-manager) by [cjo4m06](https://github.com/cjo4m06)
+- **.NET Port**: [d-german](https://github.com/d-german)
+
+---
+
+<p align="center">
+  <a href="https://github.com/d-german/mcp-task-and-research">GitHub</a> •
+  <a href="https://www.nuget.org/packages/Mcp.TaskAndResearch">NuGet</a> •
+  <a href="https://github.com/d-german/mcp-task-and-research/issues">Issues</a>
+</p>
