@@ -4,19 +4,58 @@ A Model Context Protocol (MCP) server for task management and research workflows
 
 ---
 
-## Quick Start (5 minutes)
+## Installation
 
-### Step 1: Clone & Publish
+### Option 1: Global Tool (Recommended)
+
+Install as a global .NET tool - no cloning required:
 
 ```bash
-git clone https://github.com/your-repo/mcp-task-and-research.git
+dotnet tool install -g Mcp.TaskAndResearch
+```
+
+Then configure VS Code (see [Configuration](#configuration) below).
+
+**Update:**
+```bash
+dotnet tool update -g Mcp.TaskAndResearch
+```
+
+### Option 2: Clone & Build
+
+For development or customization:
+
+```bash
+git clone https://github.com/d-german/mcp-task-and-research.git
 cd mcp-task-and-research
 dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
 ```
 
-### Step 2: Add VS Code MCP Configuration
+---
 
-Create or edit `.vscode/mcp.json` in **any project** where you want to use the task manager:
+## Configuration
+
+### Global Tool Configuration
+
+After installing globally, add to `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "task-and-research": {
+      "type": "stdio",
+      "command": "mcp-task-and-research",
+      "env": {
+        "DATA_DIR": "C:/path/to/your-project/.mcp-tasks",
+        "TASK_MANAGER_UI": "true",
+        "TASK_MANAGER_UI_AUTO_OPEN": "true"
+      }
+    }
+  }
+}
+```
+
+### Clone & Build Configuration
 
 ```json
 {
@@ -37,21 +76,134 @@ Create or edit `.vscode/mcp.json` in **any project** where you want to use the t
 }
 ```
 
-> **Important**: Use **absolute paths** for both the DLL and `DATA_DIR` to ensure the server works correctly regardless of the working directory.
+---
 
-#### Example Configuration (Windows)
+## ⚠️ Data Storage: Critical Configuration
+
+### Understanding DATA_DIR
+
+The `DATA_DIR` environment variable controls where your tasks are stored. **This is the most important configuration setting** when working with multiple projects.
+
+| Configuration | Storage Location | Use Case |
+|--------------|------------------|----------|
+| `DATA_DIR` not set | `%LOCALAPPDATA%\mcp-task-and-research` (Windows) or `~/.mcp-task-and-research` (Linux/Mac) | Single project, quick testing |
+| `DATA_DIR` set | Your specified path | **Multi-project work (RECOMMENDED)** |
+
+### 🚨 WARNING: Task Confusion Without Project Isolation
+
+**If you work on multiple projects WITHOUT setting `DATA_DIR`, you WILL encounter problems:**
+
+1. **Agent Sees All Tasks**: The AI agent sees tasks from ALL your projects mixed together
+2. **Wrong Task Execution**: "Execute the login task" could match a task from a different project
+3. **Broken Dependencies**: Task dependencies may reference tasks from other projects
+4. **Invalid File References**: Related files point to paths in other projects
+5. **Context Pollution**: Agent's understanding gets polluted with irrelevant tasks
+
+**Example of what goes wrong:**
+
+```
+You're working on Project-A (e-commerce site)
+But your task list contains:
+  - "Implement login page" (from Project-B, a blog)
+  - "Add shopping cart" (from Project-A) ← This is yours
+  - "Fix navigation menu" (from Project-C, a dashboard)
+
+Agent: "I see the login task depends on the navigation menu task..."
+       (Wrong! These are from different projects!)
+```
+
+### ✅ Recommended: Project-Isolated Configuration
+
+**Always set `DATA_DIR` to a project-specific location:**
 
 ```json
 {
   "servers": {
     "task-and-research": {
       "type": "stdio",
-      "command": "dotnet",
-      "args": [
-        "C:\\dg-task manager\\mcp-task-and-research\\publish\\Mcp.TaskAndResearch.dll"
-      ],
+      "command": "mcp-task-and-research",
       "env": {
-        "DATA_DIR": "C:\\projects\\my-project\\.mcp-tasks",
+        "DATA_DIR": "C:/projects/my-ecommerce-app/.mcp-tasks",
+        "TASK_MANAGER_UI": "true"
+      }
+    }
+  }
+}
+```
+
+### When Global Storage IS Appropriate
+
+The default global location is fine when:
+- ✅ You only work on one project at a time
+- ✅ You want to share tasks across all workspaces intentionally
+- ✅ You're just experimenting or testing
+
+### Best Practices
+
+1. **One DATA_DIR per project** - Keep tasks isolated
+2. **Use `.mcp-tasks` folder convention** - Easy to find and manage
+3. **Add to `.gitignore`** - For private tasks: `.mcp-tasks/`
+4. **Or commit it** - For shared team tasks (optional)
+5. **Use absolute paths** - Avoids working directory issues
+
+### Multi-Project Setup Example
+
+For developers working on multiple projects, configure each project's `.vscode/mcp.json`:
+
+**Project A (E-commerce):**
+```json
+{
+  "env": {
+    "DATA_DIR": "C:\\projects\\ecommerce\\.mcp-tasks"
+  }
+}
+```
+
+**Project B (Blog):**
+```json
+{
+  "env": {
+    "DATA_DIR": "C:\\projects\\blog\\.mcp-tasks"
+  }
+}
+```
+
+**Project C (Dashboard):**
+```json
+{
+  "env": {
+    "DATA_DIR": "C:\\projects\\dashboard\\.mcp-tasks"
+  }
+}
+```
+
+Now each project has completely isolated task management!
+
+---
+
+## Quick Start (5 minutes)
+
+### Step 1: Install
+
+**Global Tool (easiest):**
+```bash
+dotnet tool install -g Mcp.TaskAndResearch
+```
+
+**Or clone & build** (see [Installation](#installation) above).
+
+### Step 2: Configure
+
+Add to your project's `.vscode/mcp.json` (create if it doesn't exist):
+
+```json
+{
+  "servers": {
+    "task-and-research": {
+      "type": "stdio",
+      "command": "mcp-task-and-research",
+      "env": {
+        "DATA_DIR": "C:/your/project/path/.mcp-tasks",
         "TASK_MANAGER_UI": "true",
         "TASK_MANAGER_UI_AUTO_OPEN": "true"
       }
@@ -59,6 +211,8 @@ Create or edit `.vscode/mcp.json` in **any project** where you want to use the t
   }
 }
 ```
+
+> ⚠️ **Important**: Always set `DATA_DIR` to your project folder. See [Data Storage](#️-data-storage-critical-configuration) for why this matters.
 
 ### Step 3: Start Using
 
