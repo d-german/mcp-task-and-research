@@ -11,6 +11,23 @@ internal sealed class TaskStore : ITaskReader
     private readonly TimeProvider _timeProvider;
 
     /// <summary>
+    /// Semaphore to serialize file access within this process.
+    /// This prevents race conditions when multiple MCP tool calls
+    /// attempt to read/write the tasks file concurrently.
+    /// </summary>
+    private static readonly SemaphoreSlim FileLock = new(1, 1);
+
+    /// <summary>
+    /// Maximum number of retry attempts for file operations.
+    /// </summary>
+    private const int MaxRetries = 5;
+
+    /// <summary>
+    /// Base delay in milliseconds for exponential backoff.
+    /// </summary>
+    private const int BaseDelayMs = 100;
+
+    /// <summary>
     /// Event raised when tasks are created, updated, deleted, or cleared.
     /// </summary>
     public event Action<TaskChangeEventArgs>? OnTaskChanged;
@@ -130,14 +147,20 @@ internal sealed class TaskStore : ITaskReader
         var paths = _pathProvider.GetPaths();
         EnsureDirectory(paths.DataDirectory);
 
-        if (!File.Exists(paths.TasksFilePath))
+        await FileLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            await WriteDocumentAsync(TaskDocument.Empty).ConfigureAwait(false);
-        }
+            if (!File.Exists(paths.TasksFilePath))
+            {
+                await WriteDocumentCoreAsync(paths.TasksFilePath, TaskDocument.Empty).ConfigureAwait(false);
+            }
 
-        await using var stream = File.OpenRead(paths.TasksFilePath);
-        var document = await JsonSerializer.DeserializeAsync<TaskDocument>(stream, _jsonOptions).ConfigureAwait(false);
-        return document ?? TaskDocument.Empty;
+            return await ReadWithRetryAsync(paths.TasksFilePath).ConfigureAwait(false);
+        }
+        finally
+        {
+            FileLock.Release();
+        }
     }
 
     private async Task WriteDocumentAsync(TaskDocument document)
@@ -145,8 +168,106 @@ internal sealed class TaskStore : ITaskReader
         var paths = _pathProvider.GetPaths();
         EnsureDirectory(paths.DataDirectory);
 
-        await using var stream = File.Create(paths.TasksFilePath);
-        await JsonSerializer.SerializeAsync(stream, document, _jsonOptions).ConfigureAwait(false);
+        await FileLock.WaitAsync().ConfigureAwait(false);
+        try
+        {
+            await WriteWithRetryAsync(paths.TasksFilePath, document).ConfigureAwait(false);
+        }
+        finally
+        {
+            FileLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Reads the document with retry logic for handling temporary file locks.
+    /// </summary>
+    private async Task<TaskDocument> ReadWithRetryAsync(string filePath)
+    {
+        for (var attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                await using var stream = new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.Read);
+                var document = await JsonSerializer.DeserializeAsync<TaskDocument>(stream, _jsonOptions).ConfigureAwait(false);
+                return document ?? TaskDocument.Empty;
+            }
+            catch (IOException) when (attempt < MaxRetries - 1)
+            {
+                var delay = BaseDelayMs * (int)Math.Pow(2, attempt);
+                await Task.Delay(delay).ConfigureAwait(false);
+            }
+        }
+
+        // Final attempt - let exception propagate if it fails
+        await using var finalStream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read);
+        return await JsonSerializer.DeserializeAsync<TaskDocument>(finalStream, _jsonOptions).ConfigureAwait(false) ?? TaskDocument.Empty;
+    }
+
+    /// <summary>
+    /// Writes the document with retry logic and atomic write pattern.
+    /// Uses temp file + rename to prevent corruption.
+    /// </summary>
+    private async Task WriteWithRetryAsync(string filePath, TaskDocument document)
+    {
+        var tempPath = filePath + ".tmp." + Guid.NewGuid().ToString("N");
+
+        for (var attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                await WriteDocumentCoreAsync(tempPath, document).ConfigureAwait(false);
+                File.Move(tempPath, filePath, overwrite: true);
+                return;
+            }
+            catch (IOException) when (attempt < MaxRetries - 1)
+            {
+                // Clean up temp file if it exists
+                TryDeleteFile(tempPath);
+                var delay = BaseDelayMs * (int)Math.Pow(2, attempt);
+                await Task.Delay(delay).ConfigureAwait(false);
+            }
+        }
+
+        // Final attempt - let exception propagate if it fails
+        await WriteDocumentCoreAsync(tempPath, document).ConfigureAwait(false);
+        File.Move(tempPath, filePath, overwrite: true);
+    }
+
+    /// <summary>
+    /// Core write operation without retry logic.
+    /// </summary>
+    private static async Task WriteDocumentCoreAsync(string filePath, TaskDocument document)
+    {
+        await using var stream = new FileStream(
+            filePath,
+            FileMode.Create,
+            FileAccess.Write,
+            FileShare.None);
+        await JsonSerializer.SerializeAsync(stream, document, JsonSettings.Default).ConfigureAwait(false);
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // Ignore cleanup failures
+        }
     }
 
     private static void EnsureDirectory(string path)
