@@ -1,0 +1,128 @@
+{
+  "tasks": [
+    {
+      "id": "742d9aeb-031a-497e-85e9-c5a9f166d09c",
+      "name": "Analyze Current Project Structure",
+      "description": "Review the existing project structure, entry point, and dependencies to understand what changes are needed for .NET tool packaging.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:47:44.7177124-06:00",
+      "updatedAt": "2026-01-11T15:47:44.7177124-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj",
+          "type": "REFERENCE"
+        },
+        {
+          "path": "src/Mcp.TaskAndResearch/Program.cs",
+          "type": "REFERENCE"
+        }
+      ],
+      "analysisResult": "Goal: Convert Mcp.TaskAndResearch from a locally-built DLL to a globally installable .NET tool published on NuGet.org. This enables users to install with \u0027dotnet tool install -g Mcp.TaskAndResearch\u0027 and run directly without cloning or building, similar to how Serena MCP uses \u0027uvx --from git\u002Bhttps://github.com/...\u0027",
+      "implementationGuide": "1. Examine Program.cs entry point\n2. Review how DATA_DIR and other env vars are used\n3. Check for any hardcoded paths\n4. Identify embedded resources (Prompts folder)\n5. Review the Web SDK usage and whether it\u0027s compatible with tool packaging",
+      "verificationCriteria": "Document findings about current architecture and any potential blockers for tool packaging"
+    },
+    {
+      "id": "660d4c7f-3783-4ff8-a2b3-56c09e849cbb",
+      "name": "Update .csproj for Tool Packaging",
+      "description": "Add required NuGet tool packaging properties to the project file including PackAsTool, ToolCommandName, package metadata, and ensure proper SDK configuration.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:47:44.7222294-06:00",
+      "updatedAt": "2026-01-11T15:47:44.7222294-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj",
+          "type": "TO_MODIFY"
+        }
+      ],
+      "analysisResult": "Goal: Convert Mcp.TaskAndResearch from a locally-built DLL to a globally installable .NET tool published on NuGet.org. This enables users to install with \u0027dotnet tool install -g Mcp.TaskAndResearch\u0027 and run directly without cloning or building, similar to how Serena MCP uses \u0027uvx --from git\u002Bhttps://github.com/...\u0027",
+      "implementationGuide": "Add to .csproj:\n- PackAsTool=true\n- ToolCommandName=mcp-task-and-research\n- PackageId, Version, Authors, Description\n- PackageProjectUrl, RepositoryUrl, PackageLicenseExpression\n- PackageReadmeFile pointing to README.md\n- Ensure OutputType=Exe is set\n- Consider if Microsoft.NET.Sdk.Web is appropriate or should change to Microsoft.NET.Sdk",
+      "verificationCriteria": "Project file contains all required tool packaging properties and builds successfully"
+    },
+    {
+      "id": "69c3e58e-cfc3-44b0-a0e2-b661bc6b25fc",
+      "name": "Handle Default Data Directory",
+      "description": "Implement logic to use a sensible default DATA_DIR when not explicitly provided (e.g., ~/.mcp-tasks or %LOCALAPPDATA%/mcp-tasks) so the tool works out-of-the-box.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:47:44.7449229-06:00",
+      "updatedAt": "2026-01-11T15:47:44.7449229-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Program.cs",
+          "type": "TO_MODIFY"
+        }
+      ],
+      "analysisResult": "Goal: Convert Mcp.TaskAndResearch from a locally-built DLL to a globally installable .NET tool published on NuGet.org. This enables users to install with \u0027dotnet tool install -g Mcp.TaskAndResearch\u0027 and run directly without cloning or building, similar to how Serena MCP uses \u0027uvx --from git\u002Bhttps://github.com/...\u0027",
+      "implementationGuide": "1. Find where DATA_DIR env var is read\n2. Add fallback logic: if DATA_DIR not set, use platform-appropriate default\n   - Windows: %LOCALAPPDATA%\\mcp-task-and-research\n   - Linux/Mac: ~/.mcp-task-and-research\n3. Ensure directory is created if it doesn\u0027t exist\n4. Log the data directory location on startup",
+      "verificationCriteria": "Tool starts and functions correctly without DATA_DIR env var set, using sensible default location"
+    },
+    {
+      "id": "43f73b87-9bf5-4b1b-9ff5-088a131e359c",
+      "name": "Add Package Icon and README",
+      "description": "Create or configure package icon and ensure README.md is included in the NuGet package for display on nuget.org.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:47:44.747582-06:00",
+      "updatedAt": "2026-01-11T15:47:44.747582-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj",
+          "type": "TO_MODIFY"
+        },
+        {
+          "path": "README.md",
+          "type": "REFERENCE"
+        }
+      ],
+      "analysisResult": "Goal: Convert Mcp.TaskAndResearch from a locally-built DLL to a globally installable .NET tool published on NuGet.org. This enables users to install with \u0027dotnet tool install -g Mcp.TaskAndResearch\u0027 and run directly without cloning or building, similar to how Serena MCP uses \u0027uvx --from git\u002Bhttps://github.com/...\u0027",
+      "implementationGuide": "1. Create a 128x128 PNG icon for the package (or reuse existing)\n2. Add PackageIcon property to .csproj\n3. Include icon as PackageReference\n4. Ensure README.md is properly referenced with PackageReadmeFile\n5. Add any required None Include items for these files",
+      "verificationCriteria": "Package contains icon and README visible on nuget.org preview"
+    },
+    {
+      "id": "47768f36-fcf6-4ab3-b936-9d6ec5b6cf8b",
+      "name": "Ensure Embedded Resources Are Packaged",
+      "description": "Verify that the Prompts folder and any other embedded content is properly included in the tool package and accessible at runtime.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:48:08.1105794-06:00",
+      "updatedAt": "2026-01-11T15:48:08.1105794-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj",
+          "type": "TO_MODIFY"
+        }
+      ],
+      "analysisResult": "Adding remaining tasks for NuGet tool publishing workflow",
+      "implementationGuide": "1. Review current Content Include for Prompts folder\n2. Test that prompts are accessible when running as a tool\n3. May need to change from Content to EmbeddedResource\n4. Update any code that reads these files to use Assembly.GetManifestResourceStream if needed",
+      "verificationCriteria": "Prompts and other resources are accessible when tool is installed globally"
+    },
+    {
+      "id": "f7a5e000-59f4-4858-9542-c480f563f794",
+      "name": "Create Local Package and Test Installation",
+      "description": "Build the NuGet package locally and test installing it as a global tool without publishing to nuget.org.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:48:08.118569-06:00",
+      "updatedAt": "2026-01-11T15:48:08.118569-06:00",
+      "relatedFiles": [],
+      "analysisResult": "Adding remaining tasks for NuGet tool publishing workflow",
+      "implementationGuide": "1. Run: dotnet pack -c Release\n2. Install locally: dotnet tool install -g Mcp.TaskAndResearch --add-source ./src/Mcp.TaskAndResearch/bin/Release\n3. Test: mcp-task-and-research (verify it starts)\n4. Test with VS Code MCP configuration\n5. Uninstall: dotnet tool uninstall -g Mcp.TaskAndResearch",
+      "verificationCriteria": "Tool installs, runs, and functions correctly when installed from local package"
+    },
+    {
+      "id": "d42cb204-3985-4545-af91-e4deea9c04f0",
+      "name": "Create NuGet.org Account and API Key",
+      "description": "Set up nuget.org account (if not already done) and generate an API key for publishing.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-11T15:48:08.1244543-06:00",
+      "updatedAt": "2026-01-11T15:48:08.1244543-06:00",
+      "relatedFiles": [],
+      "analysisResult": "Adding remaining tasks for NuGet tool publishing workflow",
+      "implementationGuide": "1. Go to nuget.org and sign in with Microsoft account\n2. Navigate to Account \u003E API Keys\n3. Create new API key with \u0027Push new packages and package versions\u0027 scope\n4. Copy and securely store the API key\n5. Optionally configure GitHub Actions secret for automated publishing",
+      "verificationCriteria": "Have a valid API key ready for publishing"
+    }
+  ]
+}
