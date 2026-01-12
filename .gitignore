@@ -36,7 +36,7 @@ publish/
 [Bb]uild[Ll]og.*
 
 # VS Code
-.vscode/
+# .vscode/  # Moved to more specific rules below
 
 # NUNIT
 *.VisualState.xml

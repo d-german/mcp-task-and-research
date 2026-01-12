@@ -9,23 +9,13 @@
         "TASK_MANAGER_UI_AUTO_OPEN": "true"
       }
     },
-    "task-and-research": {
-      "type": "stdio",
-      "command": "mcp-task-and-research",
-      "env": {
-        "DATA_DIR": ".mcp-tasks",
-        "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_AUTO_OPEN": "true"
-      }
-    },
     "serena": {
       "type": "stdio",
-      "command": "cmd",
+      "command": "C:\\Users\\dgerman\\.local\\bin\\uv.exe",
       "args": [
-        "/c",
-        "C:\\Users\\dgerman\\.local\\bin\\uvx.exe",
-        "--from",
-        "git+https://github.com/oraios/serena.git",
+        "run",
+        "--directory",
+        "C:\\Users\\dgerman\\AppData\\Local\\uv\\cache\\git-v0\\checkouts\\42910dfe8296368e\\f24073c",
         "serena",
         "start-mcp-server",
         "--context",
@@ -42,4 +32,3 @@
     }
   }
 }
-
