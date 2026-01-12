@@ -77,10 +77,10 @@ MCP Task and Research Server transforms how AI agents approach software developm
 
 ### 💾 Memory & Data Management
 
-- **Task Snapshots**: Automatic preservation of task state history
+- **Task Snapshots**: Automatic preservation of task state when `clear_all_tasks` runs (completed tasks are stored in `DATA_DIR/memory`)
 - **Memory Store**: Dedicated memory management for context storage
-- **Automatic Backups**: Created during clear operations to prevent data loss
-- **Per-Project Isolation**: Each workspace maintains separate task data
+- **Automatic Backups**: Completed tasks are written to timestamped JSON under `DATA_DIR/memory` before a clear; pending tasks are dropped during clear
+- **Per-Project Isolation**: Set `DATA_DIR` to a project-scoped path (e.g., `.mcp-tasks`) and launch from the workspace root; without `DATA_DIR`, data is stored in the user-level default directory and shared across projects
 
 ### 🖥️ Blazor UI Dashboard
 
@@ -237,7 +237,7 @@ dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o 
 
 ### Global Tool Configuration
 
-After installing globally, add to `.vscode/mcp.json`:
+After installing globally, add to `.vscode/mcp.json`. A relative `DATA_DIR` (e.g., `.mcp-tasks`) keeps data per project when you start the server from the workspace root; omit `DATA_DIR` to use the user-level default directory (shared across projects).
 
 ```json
 {
@@ -246,7 +246,7 @@ After installing globally, add to `.vscode/mcp.json`:
       "type": "stdio",
       "command": "mcp-task-and-research",
       "env": {
-        "DATA_DIR": "C:/path/to/your-project/.mcp-tasks",
+        "DATA_DIR": ".mcp-tasks",
         "TASK_MANAGER_UI": "true",
         "TASK_MANAGER_UI_AUTO_OPEN": "true"
       }
