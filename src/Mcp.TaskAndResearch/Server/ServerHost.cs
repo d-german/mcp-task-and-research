@@ -28,9 +28,9 @@ internal static class ServerHost
 
     private static async Task RunWithBlazorAsync(string[] args, CancellationToken cancellationToken)
     {
-        // Get the directory where the DLL is located for proper content root
-        var assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
-        var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? Environment.CurrentDirectory;
+        // Get the directory where the application is located for proper content root
+        // AppContext.BaseDirectory works correctly for global .NET tools (unlike Assembly.Location)
+        var assemblyDir = AppContext.BaseDirectory;
         
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {

@@ -41,7 +41,7 @@ internal sealed class PromptTemplateLoader
 
     private static string GetAssemblyDirectory()
     {
-        var location = typeof(PromptTemplateLoader).Assembly.Location;
-        return Path.GetDirectoryName(location) ?? AppContext.BaseDirectory;
+        // AppContext.BaseDirectory works correctly for global .NET tools (unlike Assembly.Location)
+        return AppContext.BaseDirectory;
     }
 }
