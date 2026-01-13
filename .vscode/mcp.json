@@ -6,7 +6,8 @@
       "env": {
         "DATA_DIR": ".mcp-tasks",
         "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_AUTO_OPEN": "true"
+        "TASK_MANAGER_UI_AUTO_OPEN": "true",
+        "ENABLE_COMPLETION_BEEP": "true"
       }
     },
     "serena": {

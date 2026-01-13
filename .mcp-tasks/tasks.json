@@ -11,6 +11,557 @@
       "completedAt": "2026-01-12T12:45:22.9973797-06:00",
       "summary": "Test task completed successfully. This was a joke task created to test the task management system functionality. The task description itself was a programmer joke about nature having bugs with no stack traces. No actual implementation was required - this was purely for testing task creation, execution, and verification workflows.",
       "relatedFiles": []
+    },
+    {
+      "id": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0",
+      "name": "1.1 Create Export Models and Enums",
+      "description": "Define core export types including ExportFormat enum, ExportOptions record, and ExportResult record",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-12T16:19:50.0828504-06:00",
+      "updatedAt": "2026-01-12T16:19:50.1447832-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Models/Export/ExportFormat.cs",
+          "type": "OTHER",
+          "description": "ExportFormat enum"
+        },
+        {
+          "path": "src/CheckmarxTool.Web/Models/Export/ExportOptions.cs",
+          "type": "OTHER",
+          "description": "ExportOptions record"
+        },
+        {
+          "path": "src/CheckmarxTool.Web/Models/Export/ExportResult.cs",
+          "type": "OTHER",
+          "description": "ExportResult record"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create three files:\n- ExportFormat.cs: public enum ExportFormat { PlainText, Json, Csv }\n- ExportOptions.cs: public record ExportOptions(ExportFormat Format, bool IncludeHeaders = true);\n- ExportResult.cs: public record ExportResult(string Content, string FileName, string ContentType);",
+      "verificationCriteria": "Models compile, records are immutable, all three files exist in src/CheckmarxTool.Web/Models/Export/"
+    },
+    {
+      "id": "dd4ee023-620e-4b84-a559-dc59dc8f04a6",
+      "name": "1.2 Create IExportStrategy Interface",
+      "description": "Define generic strategy interface for export operations",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0851532-06:00",
+      "updatedAt": "2026-01-12T16:19:54.6827934-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/IExportStrategy.cs",
+          "type": "OTHER",
+          "description": "Generic export strategy interface"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create interface:\npublic interface IExportStrategy\u003CT\u003E\n{\n    ExportFormat Format { get; }\n    ExportResult Export(IEnumerable\u003CT\u003E data, ExportOptions options);\n}",
+      "verificationCriteria": "Interface compiles with generic constraint"
+    },
+    {
+      "id": "1f787828-fcb7-4778-bb6d-2bc70852ba69",
+      "name": "1.3 Create ExportStrategyFactory",
+      "description": "Factory for runtime strategy selection based on ExportFormat",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0866411-06:00",
+      "updatedAt": "2026-01-12T16:19:57.8106535-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/ExportStrategyFactory.cs",
+          "type": "OTHER",
+          "description": "Factory for runtime strategy selection"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create factory class:\npublic class ExportStrategyFactory\n{\n    public IExportStrategy\u003CT\u003E GetStrategy\u003CT\u003E(ExportFormat format) where T : class;\n}\nImplement method to return correct strategy based on format and type T.",
+      "verificationCriteria": "Factory returns correct strategy for each format"
+    },
+    {
+      "id": "22a2392a-b118-4e27-b7cc-a87c7ec902e8",
+      "name": "2.1 Extend ScanResult Model",
+      "description": "Add CWE and description properties to ScanResult for enriched export data",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-12T16:19:50.0881534-06:00",
+      "updatedAt": "2026-01-12T16:19:50.1597306-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Core/ScanResults/ScanResult.cs",
+          "type": "TO_MODIFY",
+          "description": "Add enrichment properties"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Add nullable properties to ScanResult:\n- Cwe (int?) - CWE identifier\n- CweDescription (string?) - CWE explanation\n- VulnerabilityDescription (string?) - Query description\n- Language (string?) - Programming language\n- QueryGroup (string?) - Query category group\n- Categories (IReadOnlyList\u003Cstring\u003E?) - OWASP/SANS categories",
+      "verificationCriteria": "Model compiles, properties are nullable, existing functionality not broken"
+    },
+    {
+      "id": "0b78163a-1df5-47a5-a245-34eaaaca1187",
+      "name": "2.2 Add GetQueriesForScanExtended to CxClientAdapter",
+      "description": "Wrapper method to call Checkmarx.API GetQueriesForScan for enrichment data",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-12T16:19:50.0895189-06:00",
+      "updatedAt": "2026-01-12T16:19:50.1625901-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Core/Scanning/ICxClientAdapter.cs",
+          "type": "TO_MODIFY",
+          "description": "Add interface method"
+        },
+        {
+          "path": "src/CheckmarxTool.Core/Scanning/CxClientAdapter.cs",
+          "type": "TO_MODIFY",
+          "description": "Add implementation"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Add method to interface and implementation:\nTask\u003CIEnumerable\u003CCxQuery\u003E\u003E GetQueriesForScanAsync(long scanId)\nUse _client.Scans.GetQueriesForScan(scanId) internally",
+      "verificationCriteria": "Method returns query data including CweId"
+    },
+    {
+      "id": "1accd70b-74f4-4eca-929a-340cb4173438",
+      "name": "2.3 Update ScanResultsRetriever to Populate Enriched Fields",
+      "description": "Modify BuildScanFinding to populate CWE and description fields from query data",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "22a2392a-b118-4e27-b7cc-a87c7ec902e8"
+        },
+        {
+          "taskId": "0b78163a-1df5-47a5-a245-34eaaaca1187"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0908672-06:00",
+      "updatedAt": "2026-01-12T16:20:00.6863323-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Core/Scanning/ScanResultsRetriever.cs",
+          "type": "TO_MODIFY",
+          "description": "Populate enriched fields in BuildScanFinding"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "1. Call GetQueriesForScanAsync once per scan\n2. Build dictionary keyed by QueryId for O(1) lookup\n3. In BuildScanFinding, lookup query and populate:\n   - Cwe = query.CweId\n   - VulnerabilityDescription = query.Description\n   - Language = query.Language\n   - QueryGroup = query.Group",
+      "verificationCriteria": "ScanResults contain CWE data when retrieved"
+    },
+    {
+      "id": "b6ea353d-2b6d-48e8-9841-c46fa99ad6ec",
+      "name": "3.1 DependabotPlainTextExportStrategy",
+      "description": "PlainText export for Dependabot alerts (LLM-optimized format)",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0921262-06:00",
+      "updatedAt": "2026-01-12T16:20:03.6028866-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/Strategies/DependabotPlainTextExportStrategy.cs",
+          "type": "OTHER",
+          "description": "PlainText export strategy for Dependabot"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create strategy implementing IExportStrategy\u003CDependabotAlert\u003E:\n- Format as human-readable sections per alert\n- Include: Package, Severity, Advisory, Ecosystem, Vulnerable Versions, Fixed Version\n- Use clear headers and separators for LLM consumption",
+      "verificationCriteria": "Output is human-readable, suitable for LLM consumption"
+    },
+    {
+      "id": "f677a48f-02b1-4420-9180-06f394749325",
+      "name": "3.2 DependabotJsonExportStrategy",
+      "description": "JSON export for Dependabot alerts",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0937145-06:00",
+      "updatedAt": "2026-01-12T16:20:06.5256936-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/Strategies/DependabotJsonExportStrategy.cs",
+          "type": "OTHER",
+          "description": "JSON export strategy for Dependabot"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create strategy implementing IExportStrategy\u003CDependabotAlert\u003E:\n- Use System.Text.Json with indented formatting\n- Include all alert properties\n- Set ContentType to application/json",
+      "verificationCriteria": "Valid JSON output that can be deserialized"
+    },
+    {
+      "id": "5ff99251-48cb-4af0-8f18-2b3aae77004a",
+      "name": "3.3 DependabotCsvExportStrategy",
+      "description": "CSV export for Dependabot alerts",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.095207-06:00",
+      "updatedAt": "2026-01-12T16:20:10.2157868-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/Strategies/DependabotCsvExportStrategy.cs",
+          "type": "OTHER",
+          "description": "CSV export strategy for Dependabot"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create strategy implementing IExportStrategy\u003CDependabotAlert\u003E:\n- Use CsvHelper or manual StringBuilder\n- Escape commas and quotes properly\n- Include header row\n- Set ContentType to text/csv",
+      "verificationCriteria": "Valid CSV, opens correctly in Excel"
+    },
+    {
+      "id": "8b88dea7-c196-4481-b021-62a1f736ea10",
+      "name": "3.4 CheckmarxPlainTextExportStrategy",
+      "description": "PlainText export for Checkmarx results (LLM-optimized format with CWE enrichment)",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        },
+        {
+          "taskId": "22a2392a-b118-4e27-b7cc-a87c7ec902e8"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0969269-06:00",
+      "updatedAt": "2026-01-12T16:20:13.3245256-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/Strategies/CheckmarxPlainTextExportStrategy.cs",
+          "type": "OTHER",
+          "description": "PlainText export strategy for Checkmarx"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create strategy implementing IExportStrategy\u003CScanResult\u003E:\n- Format as human-readable sections per finding\n- Include: Query Name, Severity, CWE, CWE Description, File Path, Line, Status\n- Group by severity or file path\n- Leverage enriched fields from Phase 2",
+      "verificationCriteria": "Output includes enriched CWE data, readable format"
+    },
+    {
+      "id": "6f202fd2-2cd5-49f2-b377-f5cde247e446",
+      "name": "3.5 CheckmarxJsonExportStrategy",
+      "description": "JSON export for Checkmarx results with enriched data",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        },
+        {
+          "taskId": "22a2392a-b118-4e27-b7cc-a87c7ec902e8"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.0985189-06:00",
+      "updatedAt": "2026-01-12T16:20:17.9875127-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/Strategies/CheckmarxJsonExportStrategy.cs",
+          "type": "OTHER",
+          "description": "JSON export strategy for Checkmarx"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create strategy implementing IExportStrategy\u003CScanResult\u003E:\n- Include all ScanResult properties including enriched fields\n- Use System.Text.Json with indented formatting\n- Set ContentType to application/json",
+      "verificationCriteria": "Valid JSON with CWE data"
+    },
+    {
+      "id": "89d3761c-1b73-49e7-90c9-6ff40e1ef2eb",
+      "name": "3.6 CheckmarxCsvExportStrategy",
+      "description": "CSV export for Checkmarx results with enriched data",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "dd4ee023-620e-4b84-a559-dc59dc8f04a6"
+        },
+        {
+          "taskId": "22a2392a-b118-4e27-b7cc-a87c7ec902e8"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.1000567-06:00",
+      "updatedAt": "2026-01-12T16:20:20.8060826-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/Export/Strategies/CheckmarxCsvExportStrategy.cs",
+          "type": "OTHER",
+          "description": "CSV export strategy for Checkmarx"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create strategy implementing IExportStrategy\u003CScanResult\u003E:\n- Columns: QueryName, Severity, Cwe, CweDescription, FilePath, Line, Status, etc.\n- Handle multiline descriptions appropriately\n- Set ContentType to text/csv",
+      "verificationCriteria": "Valid CSV with all columns including CWE data"
+    },
+    {
+      "id": "401dd42b-d8f1-4ceb-8c3c-0be87d9e192b",
+      "name": "4.1 Create FileDownloadService",
+      "description": "Blazor service for browser file downloads via JS Interop",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-12T16:19:50.1020408-06:00",
+      "updatedAt": "2026-01-12T16:19:50.1888394-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Services/FileDownloadService.cs",
+          "type": "OTHER",
+          "description": "C# service for file downloads"
+        },
+        {
+          "path": "src/CheckmarxTool.Web/wwwroot/js/export.js",
+          "type": "OTHER",
+          "description": "JavaScript for blob download"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create JS file (wwwroot/js/export.js):\nwindow.downloadFile = (filename, contentType, content) =\u003E {\n    const blob = new Blob([content], { type: contentType });\n    const url = URL.createObjectURL(blob);\n    const a = document.createElement(\u0027a\u0027);\n    a.href = url; a.download = filename; a.click();\n    URL.revokeObjectURL(url);\n};\n\nCreate C# service that calls JS via IJSRuntime",
+      "verificationCriteria": "File downloads in browser when service is called"
+    },
+    {
+      "id": "806b70c6-5545-40f9-909c-ddf2686eb6a0",
+      "name": "4.2 Create ExportButton Component",
+      "description": "Reusable Blazor component with format dropdown and export button",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "52ebcce6-bd7c-4ce2-8960-2c78343b22c0"
+        },
+        {
+          "taskId": "401dd42b-d8f1-4ceb-8c3c-0be87d9e192b"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.104066-06:00",
+      "updatedAt": "2026-01-12T16:20:24.1262114-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Components/ExportButton.razor",
+          "type": "OTHER",
+          "description": "Blazor component markup"
+        },
+        {
+          "path": "src/CheckmarxTool.Web/Components/ExportButton.razor.cs",
+          "type": "OTHER",
+          "description": "Blazor component code-behind"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create Blazor component with:\n- Dropdown for ExportFormat selection\n- Button that triggers export callback\n- Parameters: OnExport EventCallback\u003CExportFormat\u003E, AvailableFormats IEnumerable\u003CExportFormat\u003E\n- Styling consistent with existing UI",
+      "verificationCriteria": "Component renders, triggers callback with selected format"
+    },
+    {
+      "id": "9d0a2416-cd35-41a5-ba4a-1793e01aad99",
+      "name": "4.3 Integrate Export into DependabotProjectResults Page",
+      "description": "Add export functionality to Dependabot results page",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "1f787828-fcb7-4778-bb6d-2bc70852ba69"
+        },
+        {
+          "taskId": "b6ea353d-2b6d-48e8-9841-c46fa99ad6ec"
+        },
+        {
+          "taskId": "f677a48f-02b1-4420-9180-06f394749325"
+        },
+        {
+          "taskId": "5ff99251-48cb-4af0-8f18-2b3aae77004a"
+        },
+        {
+          "taskId": "401dd42b-d8f1-4ceb-8c3c-0be87d9e192b"
+        },
+        {
+          "taskId": "806b70c6-5545-40f9-909c-ddf2686eb6a0"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.1067149-06:00",
+      "updatedAt": "2026-01-12T16:20:27.7405283-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Pages/DependabotProjectResults.razor",
+          "type": "TO_MODIFY",
+          "description": "Add ExportButton to page"
+        },
+        {
+          "path": "src/CheckmarxTool.Web/Pages/DependabotProjectResults.razor.cs",
+          "type": "TO_MODIFY",
+          "description": "Add export logic"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "1. Add ExportButton to page toolbar\n2. Inject ExportStrategyFactory and FileDownloadService\n3. On export: Get strategy for selected format, export data, trigger download\n4. Handle loading state during export",
+      "verificationCriteria": "Export button works for all three formats (PlainText, JSON, CSV)"
+    },
+    {
+      "id": "af8f76e7-9014-46e5-a5ce-d245c243dcbd",
+      "name": "4.4 Integrate Export into Checkmarx Results Page",
+      "description": "Add export functionality to Checkmarx scan results page",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "1f787828-fcb7-4778-bb6d-2bc70852ba69"
+        },
+        {
+          "taskId": "1accd70b-74f4-4eca-929a-340cb4173438"
+        },
+        {
+          "taskId": "8b88dea7-c196-4481-b021-62a1f736ea10"
+        },
+        {
+          "taskId": "6f202fd2-2cd5-49f2-b377-f5cde247e446"
+        },
+        {
+          "taskId": "89d3761c-1b73-49e7-90c9-6ff40e1ef2eb"
+        },
+        {
+          "taskId": "401dd42b-d8f1-4ceb-8c3c-0be87d9e192b"
+        },
+        {
+          "taskId": "806b70c6-5545-40f9-909c-ddf2686eb6a0"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.1091923-06:00",
+      "updatedAt": "2026-01-12T16:20:31.2771621-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Pages/Results.razor",
+          "type": "TO_MODIFY",
+          "description": "Add ExportButton to page"
+        },
+        {
+          "path": "src/CheckmarxTool.Web/Pages/Results.razor.cs",
+          "type": "TO_MODIFY",
+          "description": "Add export logic"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "1. Add ExportButton to page toolbar\n2. Inject ExportStrategyFactory and FileDownloadService\n3. On export: Get strategy for selected format, export enriched data, trigger download\n4. Ensure enriched CWE data is included in export",
+      "verificationCriteria": "Export includes CWE enrichment data for all three formats"
+    },
+    {
+      "id": "3c8f1182-82af-47ec-af0b-734a9602b6bd",
+      "name": "5.1 Register Services in DI Container",
+      "description": "Add export services to dependency injection in Program.cs",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "1f787828-fcb7-4778-bb6d-2bc70852ba69"
+        },
+        {
+          "taskId": "401dd42b-d8f1-4ceb-8c3c-0be87d9e192b"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.1118884-06:00",
+      "updatedAt": "2026-01-12T16:20:34.1371909-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/CheckmarxTool.Web/Program.cs",
+          "type": "TO_MODIFY",
+          "description": "Register export services"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Add to Program.cs:\nbuilder.Services.AddScoped\u003CExportStrategyFactory\u003E();\nbuilder.Services.AddScoped\u003CFileDownloadService\u003E();\n// Register individual strategies if using DI resolution",
+      "verificationCriteria": "Application starts without DI errors"
+    },
+    {
+      "id": "c3472bba-6896-44eb-8190-b6b53b3a263f",
+      "name": "5.2 Unit Tests for Export Strategies",
+      "description": "Test each strategy produces correct output format",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "b6ea353d-2b6d-48e8-9841-c46fa99ad6ec"
+        },
+        {
+          "taskId": "f677a48f-02b1-4420-9180-06f394749325"
+        },
+        {
+          "taskId": "5ff99251-48cb-4af0-8f18-2b3aae77004a"
+        },
+        {
+          "taskId": "8b88dea7-c196-4481-b021-62a1f736ea10"
+        },
+        {
+          "taskId": "6f202fd2-2cd5-49f2-b377-f5cde247e446"
+        },
+        {
+          "taskId": "89d3761c-1b73-49e7-90c9-6ff40e1ef2eb"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.1149434-06:00",
+      "updatedAt": "2026-01-12T16:20:38.0718602-06:00",
+      "relatedFiles": [
+        {
+          "path": "tests/CheckmarxTool.Web.Tests/Services/Export/DependabotExportStrategyTests.cs",
+          "type": "OTHER",
+          "description": "Dependabot strategy tests"
+        },
+        {
+          "path": "tests/CheckmarxTool.Web.Tests/Services/Export/CheckmarxExportStrategyTests.cs",
+          "type": "OTHER",
+          "description": "Checkmarx strategy tests"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create unit tests:\n- Test PlainText output format and content\n- Test JSON is valid and deserializable\n- Test CSV has correct headers and escaping\n- Test edge cases: empty data, special characters, large datasets",
+      "verificationCriteria": "All unit tests pass"
+    },
+    {
+      "id": "f1dbef57-6fde-417b-8a0b-0207cf014c53",
+      "name": "5.3 Integration Tests",
+      "description": "End-to-end tests for export workflow",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "3c8f1182-82af-47ec-af0b-734a9602b6bd"
+        },
+        {
+          "taskId": "c3472bba-6896-44eb-8190-b6b53b3a263f"
+        }
+      ],
+      "createdAt": "2026-01-12T16:19:50.1177589-06:00",
+      "updatedAt": "2026-01-12T16:20:41.8983428-06:00",
+      "relatedFiles": [
+        {
+          "path": "tests/CheckmarxTool.Web.Tests/Integration/ExportIntegrationTests.cs",
+          "type": "OTHER",
+          "description": "Integration tests for export workflow"
+        }
+      ],
+      "analysisResult": "Export Feature Implementation: Comprehensive task list for implementing export functionality for Dependabot alerts and Checkmarx scan results using the Strategy Pattern for runtime format selection. Priority is PlainText format (LLM-optimized) first, then JSON and CSV. Estimated Total Effort: 6-10 hours.",
+      "implementationGuide": "Create integration tests:\n- Test factory returns correct strategy for each format and type\n- Test full export workflow with mock data\n- Test file download service integration",
+      "verificationCriteria": "Integration tests pass"
     }
   ]
 }
