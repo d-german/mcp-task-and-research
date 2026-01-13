@@ -50,6 +50,9 @@ internal static class ServerServices
         services.AddSingleton(metadata);
         services.AddSingleton<McpServerAccessor>();
         
+        // Notification Services
+        services.AddSingleton<Services.AudioNotificationService>();
+        
         // UI Services
         services.AddScoped<UI.Services.LoadingService>();
         services.AddScoped<UI.Services.NotificationService>();
