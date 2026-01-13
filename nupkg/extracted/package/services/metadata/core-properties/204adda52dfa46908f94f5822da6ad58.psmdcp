@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<coreProperties xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.openxmlformats.org/package/2006/metadata/core-properties">
+  <dc:creator>d-german</dc:creator>
+  <dc:description>MCP server for task management and research. Provides structured task planning, execution tracking, and research mode capabilities for AI coding assistants.</dc:description>
+  <dc:identifier>Mcp.TaskAndResearch</dc:identifier>
+  <version>1.0.12</version>
+  <keywords>mcp model-context-protocol task-management research ai-assistant</keywords>
+  <lastModifiedBy>NuGet.Build.Tasks.Pack, Version=6.14.0.116, Culture=neutral, PublicKeyToken=31bf3856ad364e35;.NET Standard 2.0</lastModifiedBy>
+</coreProperties>

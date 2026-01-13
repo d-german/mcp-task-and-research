@@ -1,0 +1,176 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Mcp.TaskAndResearch</id>
+    <version>1.0.12</version>
+    <authors>d-german</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/d-german/mcp-task-and-research</projectUrl>
+    <description>MCP server for task management and research. Provides structured task planning, execution tracking, and research mode capabilities for AI coding assistants.</description>
+    <tags>mcp model-context-protocol task-management research ai-assistant</tags>
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+    <repository type="git" url="https://github.com/d-german/mcp-task-and-research" commit="4bb38849604ef509812bf2fd58ff28196319dd09" />
+    <frameworkReferences>
+      <group targetFramework="net8.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+      <group targetFramework="net9.0">
+        <frameworkReference name="Microsoft.AspNetCore.App" />
+      </group>
+    </frameworkReferences>
+    <contentFiles>
+      <files include="any/net8.0/Prompts/PromptCustomization.cs" buildAction="Content" />
+      <files include="any/net9.0/Prompts/PromptCustomization.cs" buildAction="Content" />
+      <files include="any/net8.0/Prompts/PromptTemplateLoader.cs" buildAction="Content" />
+      <files include="any/net9.0/Prompts/PromptTemplateLoader.cs" buildAction="Content" />
+      <files include="any/net8.0/Prompts/PromptTemplateRenderer.cs" buildAction="Content" />
+      <files include="any/net9.0/Prompts/PromptTemplateRenderer.cs" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/analyzeTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/analyzeTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/analyzeTask/iteration.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/analyzeTask/iteration.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/clearAllTasks/backupInfo.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/clearAllTasks/backupInfo.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/clearAllTasks/cancel.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/clearAllTasks/cancel.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/clearAllTasks/empty.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/clearAllTasks/empty.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/clearAllTasks/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/clearAllTasks/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/clearAllTasks/success.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/clearAllTasks/success.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/deleteTask/completed.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/deleteTask/completed.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/deleteTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/deleteTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/deleteTask/notFound.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/deleteTask/notFound.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/deleteTask/success.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/deleteTask/success.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/analysisResult.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/analysisResult.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/complexity.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/complexity.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/dependencyTasks.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/dependencyTasks.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/implementationGuide.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/implementationGuide.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/notes.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/notes.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/relatedFilesSummary.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/relatedFilesSummary.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/executeTask/verificationCriteria.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/executeTask/verificationCriteria.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/complatedSummary.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/complatedSummary.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/dependencies.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/dependencies.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/error.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/error.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/implementationGuide.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/implementationGuide.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/notes.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/notes.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/notFound.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/notFound.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/relatedFiles.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/relatedFiles.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/getTaskDetail/verificationCriteria.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/getTaskDetail/verificationCriteria.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/initProjectRules/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/initProjectRules/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/listTasks/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/listTasks/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/listTasks/notFound.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/listTasks/notFound.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/listTasks/taskDetails.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/listTasks/taskDetails.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/planTask/hasThought.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/planTask/hasThought.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/planTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/planTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/planTask/noThought.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/planTask/noThought.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/planTask/tasks.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/planTask/tasks.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/processThought/complatedThought.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/processThought/complatedThought.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/processThought/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/processThought/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/processThought/moreThought.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/processThought/moreThought.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/queryTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/queryTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/queryTask/notFound.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/queryTask/notFound.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/queryTask/taskDetails.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/queryTask/taskDetails.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/reflectTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/reflectTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/researchMode/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/researchMode/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/researchMode/previousState.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/researchMode/previousState.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/splitTasks/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/splitTasks/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/splitTasks/taskDetails.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/splitTasks/taskDetails.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/tests/basic.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/tests/basic.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/analyzeTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/analyzeTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/clearAllTasks.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/clearAllTasks.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/deleteTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/deleteTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/executeTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/executeTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/getTaskDetail.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/getTaskDetail.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/initProjectRules.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/initProjectRules.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/listTasks.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/listTasks.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/planTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/planTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/processThought.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/processThought.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/queryTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/queryTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/reflectTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/reflectTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/researchMode.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/researchMode.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/splitTasks.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/splitTasks.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/updateTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/updateTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/toolsDescription/verifyTask.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/toolsDescription/verifyTask.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/updateTaskContent/emptyUpdate.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/updateTaskContent/emptyUpdate.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/updateTaskContent/fileDetails.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/updateTaskContent/fileDetails.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/updateTaskContent/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/updateTaskContent/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/updateTaskContent/notFound.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/updateTaskContent/notFound.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/updateTaskContent/success.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/updateTaskContent/success.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/updateTaskContent/validation.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/updateTaskContent/validation.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/verifyTask/index.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/verifyTask/index.md" buildAction="Content" />
+      <files include="any/net8.0/Prompts/v1/templates_en/verifyTask/noPass.md" buildAction="Content" />
+      <files include="any/net9.0/Prompts/v1/templates_en/verifyTask/noPass.md" buildAction="Content" />
+    </contentFiles>
+  </metadata>
+</package>

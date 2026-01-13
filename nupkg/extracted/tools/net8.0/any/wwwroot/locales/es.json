@@ -1,0 +1,98 @@
+{
+  "app": {
+    "title": "Gestor de Tareas",
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "refresh": "Actualizar",
+    "export": "Exportar",
+    "import": "Importar",
+    "reset": "Restablecer"
+  },
+  "nav": {
+    "home": "Inicio",
+    "tasks": "Tareas",
+    "history": "Historial",
+    "agents": "Agentes",
+    "templates": "Plantillas",
+    "settings": "Configuración"
+  },
+  "tasks": {
+    "title": "Tareas",
+    "newTask": "Nueva Tarea",
+    "noTasks": "No se encontraron tareas",
+    "name": "Nombre",
+    "description": "Descripción",
+    "status": "Estado",
+    "priority": "Prioridad",
+    "dependencies": "Dependencias",
+    "createdAt": "Fecha de Creación",
+    "updatedAt": "Última Actualización",
+    "actions": "Acciones",
+    "markComplete": "Marcar Completa",
+    "viewDetails": "Ver Detalles",
+    "deleteConfirm": "¿Está seguro de que desea eliminar esta tarea?"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "inProgress": "En Progreso",
+    "completed": "Completada",
+    "blocked": "Bloqueada",
+    "cancelled": "Cancelada"
+  },
+  "history": {
+    "title": "Historial",
+    "noHistory": "Sin entradas de historial",
+    "action": "Acción",
+    "timestamp": "Marca de Tiempo",
+    "details": "Detalles"
+  },
+  "agents": {
+    "title": "Agentes",
+    "noAgents": "No hay agentes configurados",
+    "name": "Nombre del Agente",
+    "type": "Tipo",
+    "status": "Estado",
+    "lastActive": "Última Actividad"
+  },
+  "templates": {
+    "title": "Plantillas",
+    "noTemplates": "No hay plantillas disponibles",
+    "useTemplate": "Usar Plantilla",
+    "editTemplate": "Editar Plantilla",
+    "deleteTemplate": "Eliminar Plantilla"
+  },
+  "settings": {
+    "title": "Configuración",
+    "appearance": "Apariencia",
+    "darkMode": "Modo Oscuro",
+    "theme": "Tema",
+    "language": "Idioma",
+    "autoRefresh": "Actualización Automática",
+    "enabled": "Habilitado",
+    "interval": "Intervalo (segundos)",
+    "notifications": "Notificaciones",
+    "showNotifications": "Mostrar Notificaciones",
+    "playSound": "Reproducir Sonido",
+    "data": "Gestión de Datos",
+    "exportSettings": "Exportar Configuración",
+    "importSettings": "Importar Configuración",
+    "resetDefaults": "Restablecer Valores"
+  },
+  "notifications": {
+    "taskCreated": "Tarea creada exitosamente",
+    "taskUpdated": "Tarea actualizada",
+    "taskDeleted": "Tarea eliminada",
+    "taskCompleted": "Tarea marcada como completa",
+    "settingsSaved": "Configuración guardada",
+    "error": "Operación fallida"
+  }
+}
