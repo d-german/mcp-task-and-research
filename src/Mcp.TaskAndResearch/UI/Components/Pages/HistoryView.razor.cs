@@ -52,10 +52,19 @@ public partial class HistoryView : ComponentBase, IDisposable
         try
         {
             // Load active tasks
-            var activeTasks = await TaskReader.GetAllAsync().ConfigureAwait(false);
+            var activeTasksResult = await TaskReader.GetAllAsync().ConfigureAwait(false);
+            var activeTasks = activeTasksResult.IsSuccess 
+                ? activeTasksResult.Value 
+                : ImmutableArray<TaskItem>.Empty;
+            
+            if (activeTasksResult.IsFailure)
+            {
+                Snackbar.Add($"Warning: Could not load active tasks: {activeTasksResult.Error}", Severity.Warning);
+            }
             
             // Load archived/cleared tasks from snapshots
-            var archivedTasks = await MemoryStore.ReadAllSnapshotsAsync().ConfigureAwait(false);
+            var archivedResult = await MemoryStore.ReadAllSnapshotsAsync().ConfigureAwait(false);
+            var archivedTasks = archivedResult.IsSuccess ? archivedResult.Value : ImmutableArray<TaskItem>.Empty;
             
             // Merge both, using a HashSet to avoid duplicates (by task ID)
             var seenIds = new HashSet<string>();

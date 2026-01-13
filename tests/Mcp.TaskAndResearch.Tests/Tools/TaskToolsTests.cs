@@ -1,3 +1,4 @@
+using CSharpFunctionalExtensions;
 using Mcp.TaskAndResearch.Config;
 using Mcp.TaskAndResearch.Data;
 using Mcp.TaskAndResearch.Prompts;
@@ -80,7 +81,9 @@ public sealed class TaskToolsTests
 
         var prompt = await TaskTools.SplitTasks(builder, context.BatchService, "append", inputs, "Global analysis");
 
-        var tasks = await context.TaskStore.GetAllAsync();
+        var tasksResult = await context.TaskStore.GetAllAsync();
+        Assert.True(tasksResult.IsSuccess);
+        var tasks = tasksResult.Value;
         Assert.Equal(2, tasks.Length);
         Assert.Contains("Task A", prompt);
         Assert.Contains("Task B", prompt);
@@ -147,8 +150,8 @@ public sealed class TaskToolsTests
         var prompt = await TaskTools.ExecuteTask(builder, context.WorkflowService, context.TaskStore, task.Id);
 
         var updated = await context.TaskStore.GetByIdAsync(task.Id);
-        Assert.NotNull(updated);
-        Assert.Equal(TaskStatus.InProgress, updated!.Status);
+        Assert.True(updated.HasValue);
+        Assert.Equal(TaskStatus.InProgress, updated.Value.Status);
         Assert.Contains("Execute task", prompt);
     }
 
@@ -167,9 +170,9 @@ public sealed class TaskToolsTests
         var prompt = await TaskTools.VerifyTask(builder, context.WorkflowService, context.TaskStore, task.Id, 85, "All checks passed");
 
         var updated = await context.TaskStore.GetByIdAsync(task.Id);
-        Assert.NotNull(updated);
-        Assert.Equal(TaskStatus.Completed, updated!.Status);
-        Assert.Equal("All checks passed", updated.Summary);
+        Assert.True(updated.HasValue);
+        Assert.Equal(TaskStatus.Completed, updated.Value.Status);
+        Assert.Equal("All checks passed", updated.Value.Summary);
         Assert.Contains("All checks passed", prompt);
     }
 
@@ -186,7 +189,7 @@ public sealed class TaskToolsTests
         var prompt = await TaskTools.DeleteTask(builder, context.TaskStore, task.Id);
 
         var missing = await context.TaskStore.GetByIdAsync(task.Id);
-        Assert.Null(missing);
+        Assert.True(missing.HasNoValue);
         Assert.Contains(task.Id, prompt);
     }
 
@@ -203,8 +206,9 @@ public sealed class TaskToolsTests
 
         var prompt = await TaskTools.ClearAllTasks(builder, context.TaskStore, confirm: true);
 
-        var tasks = await context.TaskStore.GetAllAsync();
-        Assert.Empty(tasks);
+        var tasksResult = await context.TaskStore.GetAllAsync();
+        Assert.True(tasksResult.IsSuccess);
+        Assert.Empty(tasksResult.Value);
         Assert.Contains("Clear All Tasks Result", prompt);
     }
 
@@ -226,8 +230,8 @@ public sealed class TaskToolsTests
             description: "Updated description");
 
         var updated = await context.TaskStore.GetByIdAsync(task.Id);
-        Assert.NotNull(updated);
-        Assert.Equal("Updated name", updated!.Name);
+        Assert.True(updated.HasValue);
+        Assert.Equal("Updated name", updated.Value.Name);
         Assert.Contains("Updated name", prompt);
     }
 
@@ -259,13 +263,14 @@ public sealed class TaskToolsTests
         return new ToolTestContext(loader, pathProvider, taskStore, searchService, batchService, workflowService);
     }
 
-    private static Task<TaskItem> CreateTaskAsync(TaskStore taskStore, string name, string description)
+    private static async Task<TaskItem> CreateTaskAsync(TaskStore taskStore, string name, string description)
     {
-        return taskStore.CreateAsync(new TaskCreateRequest
+        var result = await taskStore.CreateAsync(new TaskCreateRequest
         {
             Name = name,
             Description = description
-        });
+        }).ConfigureAwait(false);
+        return result.Value;
     }
 
     private sealed record ToolTestContext(

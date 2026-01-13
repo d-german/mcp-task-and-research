@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CSharpFunctionalExtensions;
 using Mcp.TaskAndResearch.Config;
 using Microsoft.Extensions.Logging.Abstractions;
 using Mcp.TaskAndResearch.Data;
@@ -16,29 +17,31 @@ public sealed class TaskStorageTests
         using var env = CreateEnvScope(temp.Path);
 
         var stores = CreateStores();
-        var created = await stores.TaskStore.CreateAsync(new TaskCreateRequest
+        var createResult = await stores.TaskStore.CreateAsync(new TaskCreateRequest
         {
             Name = "Initial",
             Description = "First task"
         });
+        Assert.True(createResult.IsSuccess);
+        var created = createResult.Value;
 
         var loaded = await stores.TaskStore.GetByIdAsync(created.Id);
-        Assert.NotNull(loaded);
+        Assert.True(loaded.HasValue);
 
-        var updated = await stores.TaskStore.UpdateAsync(created.Id, new TaskUpdateRequest
+        var updateResult = await stores.TaskStore.UpdateAsync(created.Id, new TaskUpdateRequest
         {
             Name = "Updated",
             Status = TaskStatus.InProgress
         });
 
-        Assert.NotNull(updated);
-        Assert.Equal("Updated", updated!.Name);
+        Assert.True(updateResult.IsSuccess);
+        Assert.Equal("Updated", updateResult.Value.Name);
 
         var deleted = await stores.TaskStore.DeleteAsync(created.Id);
-        Assert.True(deleted);
+        Assert.True(deleted.IsSuccess);
 
         var missing = await stores.TaskStore.GetByIdAsync(created.Id);
-        Assert.Null(missing);
+        Assert.True(missing.HasNoValue);
     }
 
     [Fact]
@@ -48,12 +51,12 @@ public sealed class TaskStorageTests
         using var env = CreateEnvScope(temp.Path);
 
         var stores = CreateStores();
-        var completed = await stores.TaskStore.CreateAsync(new TaskCreateRequest
+        var completedResult = await stores.TaskStore.CreateAsync(new TaskCreateRequest
         {
             Name = "Done",
             Description = "Completed task"
         });
-        await stores.TaskStore.UpdateAsync(completed.Id, new TaskUpdateRequest
+        await stores.TaskStore.UpdateAsync(completedResult.Value.Id, new TaskUpdateRequest
         {
             Status = TaskStatus.Completed
         });
@@ -64,15 +67,18 @@ public sealed class TaskStorageTests
             Description = "Still open"
         });
 
-        var result = await stores.TaskStore.ClearAllAsync();
-        Assert.True(result.Success);
+        var clearResult = await stores.TaskStore.ClearAllAsync();
+        Assert.True(clearResult.IsSuccess);
+        Assert.True(clearResult.Value.Success);
 
-        var remaining = await stores.TaskStore.GetAllAsync();
-        Assert.Empty(remaining);
+        var remainingResult = await stores.TaskStore.GetAllAsync();
+        Assert.True(remainingResult.IsSuccess);
+        Assert.Empty(remainingResult.Value);
 
-        var memoryTasks = await stores.MemoryStore.ReadAllSnapshotsAsync();
-        Assert.Single(memoryTasks);
-        Assert.Equal(TaskStatus.Completed, memoryTasks[0].Status);
+        var memoryResult = await stores.MemoryStore.ReadAllSnapshotsAsync();
+        Assert.True(memoryResult.IsSuccess);
+        Assert.Single(memoryResult.Value);
+        Assert.Equal(TaskStatus.Completed, memoryResult.Value[0].Status);
     }
 
     [Fact]
@@ -82,21 +88,24 @@ public sealed class TaskStorageTests
         using var env = CreateEnvScope(temp.Path);
 
         var stores = CreateStores();
-        var current = await stores.TaskStore.CreateAsync(new TaskCreateRequest
+        var currentResult = await stores.TaskStore.CreateAsync(new TaskCreateRequest
         {
             Name = "Alpha task",
             Description = "Current item"
         });
+        var current = currentResult.Value;
 
         var snapshotTask = CreateSnapshotTask("memory-1", "Beta task", TaskStatus.Completed);
         await stores.MemoryStore.WriteSnapshotAsync(ImmutableArray.Create(snapshotTask));
 
-        var search = await stores.SearchService.SearchAsync("task", false, 1, 10);
-        Assert.Equal(2, search.Pagination.TotalResults);
+        var searchResult = await stores.SearchService.SearchAsync("task", false, 1, 10);
+        Assert.True(searchResult.IsSuccess);
+        Assert.Equal(2, searchResult.Value.Pagination.TotalResults);
 
-        var idSearch = await stores.SearchService.SearchAsync(current.Id, true, 1, 10);
-        Assert.Single(idSearch.Tasks);
-        Assert.Equal(current.Id, idSearch.Tasks[0].Id);
+        var idSearchResult = await stores.SearchService.SearchAsync(current.Id, true, 1, 10);
+        Assert.True(idSearchResult.IsSuccess);
+        Assert.Single(idSearchResult.Value.Tasks);
+        Assert.Equal(current.Id, idSearchResult.Value.Tasks[0].Id);
     }
 
     private static TaskItem CreateSnapshotTask(string id, string name, TaskStatus status)

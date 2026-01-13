@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CSharpFunctionalExtensions;
 
 namespace Mcp.TaskAndResearch.Data;
 
@@ -16,10 +17,10 @@ public interface ITaskReader
     /// <summary>
     /// Gets all tasks.
     /// </summary>
-    Task<ImmutableArray<TaskItem>> GetAllAsync();
+    Task<Result<ImmutableArray<TaskItem>>> GetAllAsync();
 
     /// <summary>
     /// Gets a task by ID.
     /// </summary>
-    Task<TaskItem?> GetByIdAsync(string taskId);
+    Task<Maybe<TaskItem>> GetByIdAsync(string taskId);
 }

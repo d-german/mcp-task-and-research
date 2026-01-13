@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using CSharpFunctionalExtensions;
+using Mcp.TaskAndResearch.Extensions;
 
 namespace Mcp.TaskAndResearch.Data;
 
@@ -40,21 +42,35 @@ internal sealed class TaskStore : ITaskReader
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public async Task<ImmutableArray<TaskItem>> GetAllAsync()
+    public async Task<Result<ImmutableArray<TaskItem>>> GetAllAsync()
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
-        return document.Tasks;
+        var documentResult = await ReadDocumentAsync().ConfigureAwait(false);
+        return documentResult.IsSuccess 
+            ? Result.Success(documentResult.Value.Tasks) 
+            : Result.Failure<ImmutableArray<TaskItem>>(documentResult.Error);
     }
 
-    public async Task<TaskItem?> GetByIdAsync(string taskId)
+    public async Task<Maybe<TaskItem>> GetByIdAsync(string taskId)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
-        return document.Tasks.FirstOrDefault(task => task.Id == taskId);
+        var documentResult = await ReadDocumentAsync().ConfigureAwait(false);
+        if (documentResult.IsFailure)
+        {
+            return Maybe<TaskItem>.None;
+        }
+
+        var task = documentResult.Value.Tasks.FirstOrDefault(t => t.Id == taskId);
+        return task.ToMaybe();
     }
 
-    public async Task<TaskItem> CreateAsync(TaskCreateRequest request)
+    public async Task<Result<TaskItem>> CreateAsync(TaskCreateRequest request)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
+        var documentResult = await ReadDocumentAsync().ConfigureAwait(false);
+        if (documentResult.IsFailure)
+        {
+            return Result.Failure<TaskItem>($"Failed to read task document: {documentResult.Error}");
+        }
+
+        var document = documentResult.Value;
         var now = _timeProvider.GetLocalNow();
 
         var task = new TaskItem
@@ -79,18 +95,29 @@ internal sealed class TaskStore : ITaskReader
             Tasks = document.Tasks.Add(task)
         };
 
-        await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        var writeResult = await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        if (writeResult.IsFailure)
+        {
+            return Result.Failure<TaskItem>($"Failed to save task: {writeResult.Error}");
+        }
+
         OnTaskChanged?.Invoke(TaskChangeEventArgs.Created(task));
-        return task;
+        return Result.Success(task);
     }
 
-    public async Task<TaskItem?> UpdateAsync(string taskId, TaskUpdateRequest request)
+    public async Task<Result<TaskItem>> UpdateAsync(string taskId, TaskUpdateRequest request)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
+        var documentResult = await ReadDocumentAsync().ConfigureAwait(false);
+        if (documentResult.IsFailure)
+        {
+            return Result.Failure<TaskItem>($"Failed to read task document: {documentResult.Error}");
+        }
+
+        var document = documentResult.Value;
         var index = FindTaskIndex(document.Tasks, taskId);
         if (index < 0)
         {
-            return null;
+            return Result.Failure<TaskItem>($"Task not found: {taskId}");
         }
 
         var now = _timeProvider.GetLocalNow();
@@ -100,18 +127,29 @@ internal sealed class TaskStore : ITaskReader
             Tasks = document.Tasks.SetItem(index, updated)
         };
 
-        await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        var writeResult = await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        if (writeResult.IsFailure)
+        {
+            return Result.Failure<TaskItem>($"Failed to save task update: {writeResult.Error}");
+        }
+
         OnTaskChanged?.Invoke(TaskChangeEventArgs.Updated(updated));
-        return updated;
+        return Result.Success(updated);
     }
 
-    public async Task<bool> DeleteAsync(string taskId)
+    public async Task<Result> DeleteAsync(string taskId)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
+        var documentResult = await ReadDocumentAsync().ConfigureAwait(false);
+        if (documentResult.IsFailure)
+        {
+            return Result.Failure($"Failed to read task document: {documentResult.Error}");
+        }
+
+        var document = documentResult.Value;
         var index = FindTaskIndex(document.Tasks, taskId);
         if (index < 0)
         {
-            return false;
+            return Result.Failure($"Task not found: {taskId}");
         }
 
         var deletedTask = document.Tasks[index];
@@ -120,29 +158,52 @@ internal sealed class TaskStore : ITaskReader
             Tasks = document.Tasks.RemoveAt(index)
         };
 
-        await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        var writeResult = await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
+        if (writeResult.IsFailure)
+        {
+            return Result.Failure($"Failed to delete task: {writeResult.Error}");
+        }
+
         OnTaskChanged?.Invoke(TaskChangeEventArgs.Deleted(deletedTask));
-        return true;
+        return Result.Success();
     }
 
-    public async Task<ClearAllResult> ClearAllAsync()
+    public async Task<Result<ClearAllResult>> ClearAllAsync()
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
+        var documentResult = await ReadDocumentAsync().ConfigureAwait(false);
+        if (documentResult.IsFailure)
+        {
+            return Result.Failure<ClearAllResult>($"Failed to read task document: {documentResult.Error}");
+        }
+
+        var document = documentResult.Value;
         if (document.Tasks.IsDefaultOrEmpty)
         {
-            return ClearAllResult.Empty;
+            return Result.Success(ClearAllResult.Empty);
         }
 
         var completedTasks = document.Tasks.Where(task => task.Status == TaskStatus.Completed).ToImmutableArray();
-        var backupFile = await _memoryStore.WriteSnapshotAsync(completedTasks).ConfigureAwait(false);
+        
+        // Backup completed tasks before clearing - fail the operation if backup fails to prevent data loss
+        var backupResult = await _memoryStore.WriteSnapshotAsync(completedTasks).ConfigureAwait(false);
+        if (backupResult.IsFailure)
+        {
+            return Result.Failure<ClearAllResult>($"Failed to backup completed tasks: {backupResult.Error}");
+        }
 
-        await WriteDocumentAsync(TaskDocument.Empty).ConfigureAwait(false);
+        var writeResult = await WriteDocumentAsync(TaskDocument.Empty).ConfigureAwait(false);
+        if (writeResult.IsFailure)
+        {
+            return Result.Failure<ClearAllResult>($"Failed to clear tasks: {writeResult.Error}");
+        }
+        
+        var backupFile = backupResult.Value;
+
         OnTaskChanged?.Invoke(TaskChangeEventArgs.Cleared());
-
-        return new ClearAllResult(true, "Tasks cleared.", backupFile);
+        return Result.Success(new ClearAllResult(true, "Tasks cleared.", backupFile));
     }
 
-    private async Task<TaskDocument> ReadDocumentAsync()
+    private async Task<Result<TaskDocument>> ReadDocumentAsync()
     {
         var paths = _pathProvider.GetPaths();
         EnsureDirectory(paths.DataDirectory);
@@ -163,7 +224,7 @@ internal sealed class TaskStore : ITaskReader
         }
     }
 
-    private async Task WriteDocumentAsync(TaskDocument document)
+    private async Task<Result> WriteDocumentAsync(TaskDocument document)
     {
         var paths = _pathProvider.GetPaths();
         EnsureDirectory(paths.DataDirectory);
@@ -171,7 +232,7 @@ internal sealed class TaskStore : ITaskReader
         await FileLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            await WriteWithRetryAsync(paths.TasksFilePath, document).ConfigureAwait(false);
+            return await WriteWithRetryAsync(paths.TasksFilePath, document).ConfigureAwait(false);
         }
         finally
         {
@@ -182,11 +243,11 @@ internal sealed class TaskStore : ITaskReader
     /// <summary>
     /// Reads the document with retry logic for handling temporary file locks.
     /// </summary>
-    private async Task<TaskDocument> ReadWithRetryAsync(string filePath)
+    private async Task<Result<TaskDocument>> ReadWithRetryAsync(string filePath)
     {
         for (var attempt = 0; attempt < MaxRetries; attempt++)
         {
-            try
+            var readResult = await AsyncResultExtensions.TryAsync(async () =>
             {
                 await using var stream = new FileStream(
                     filePath,
@@ -195,51 +256,69 @@ internal sealed class TaskStore : ITaskReader
                     FileShare.Read);
                 var document = await JsonSerializer.DeserializeAsync<TaskDocument>(stream, _jsonOptions).ConfigureAwait(false);
                 return document ?? TaskDocument.Empty;
+            }).ConfigureAwait(false);
+
+            if (readResult.IsSuccess)
+            {
+                return readResult;
             }
-            catch (IOException) when (attempt < MaxRetries - 1)
+
+            if (attempt < MaxRetries - 1)
             {
                 var delay = BaseDelayMs * (int)Math.Pow(2, attempt);
                 await Task.Delay(delay).ConfigureAwait(false);
             }
         }
 
-        // Final attempt - let exception propagate if it fails
-        await using var finalStream = new FileStream(
-            filePath,
-            FileMode.Open,
-            FileAccess.Read,
-            FileShare.Read);
-        return await JsonSerializer.DeserializeAsync<TaskDocument>(finalStream, _jsonOptions).ConfigureAwait(false) ?? TaskDocument.Empty;
+        // Final attempt
+        return await AsyncResultExtensions.TryAsync(async () =>
+        {
+            await using var finalStream = new FileStream(
+                filePath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read);
+            return await JsonSerializer.DeserializeAsync<TaskDocument>(finalStream, _jsonOptions).ConfigureAwait(false) ?? TaskDocument.Empty;
+        }).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Writes the document with retry logic and atomic write pattern.
     /// Uses temp file + rename to prevent corruption.
     /// </summary>
-    private async Task WriteWithRetryAsync(string filePath, TaskDocument document)
+    private async Task<Result> WriteWithRetryAsync(string filePath, TaskDocument document)
     {
         var tempPath = filePath + ".tmp." + Guid.NewGuid().ToString("N");
 
         for (var attempt = 0; attempt < MaxRetries; attempt++)
         {
-            try
+            var writeResult = await AsyncResultExtensions.TryAsync(async () =>
             {
                 await WriteDocumentCoreAsync(tempPath, document).ConfigureAwait(false);
                 File.Move(tempPath, filePath, overwrite: true);
-                return;
-            }
-            catch (IOException) when (attempt < MaxRetries - 1)
+            }).ConfigureAwait(false);
+
+            if (writeResult.IsSuccess)
             {
-                // Clean up temp file if it exists
-                TryDeleteFile(tempPath);
+                return writeResult;
+            }
+
+            // Clean up temp file if it exists
+            TryDeleteFile(tempPath);
+
+            if (attempt < MaxRetries - 1)
+            {
                 var delay = BaseDelayMs * (int)Math.Pow(2, attempt);
                 await Task.Delay(delay).ConfigureAwait(false);
             }
         }
 
-        // Final attempt - let exception propagate if it fails
-        await WriteDocumentCoreAsync(tempPath, document).ConfigureAwait(false);
-        File.Move(tempPath, filePath, overwrite: true);
+        // Final attempt
+        return await AsyncResultExtensions.TryAsync(async () =>
+        {
+            await WriteDocumentCoreAsync(tempPath, document).ConfigureAwait(false);
+            File.Move(tempPath, filePath, overwrite: true);
+        }).ConfigureAwait(false);
     }
 
     /// <summary>

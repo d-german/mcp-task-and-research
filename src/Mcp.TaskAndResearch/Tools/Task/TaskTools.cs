@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
+using CSharpFunctionalExtensions;
 using Mcp.TaskAndResearch.Data;
 using ModelContextProtocol.Server;
 using TaskStatus = Mcp.TaskAndResearch.Data.TaskStatus;
@@ -62,23 +63,19 @@ internal static class TaskTools
         [Description("Structured task list to create or update.")] TaskInput[] tasks,
         [Description("Optional global analysis result.")] string? globalAnalysisResult = null)
     {
-        try
+        var validationResult = TaskInputValidator.ValidateUniqueNames(tasks);
+        if (validationResult.IsFailure)
         {
-            var validationError = TaskInputValidator.ValidateUniqueNames(tasks);
-            if (!string.IsNullOrWhiteSpace(validationError))
-            {
-                return validationError;
-            }
+            return validationResult.Error;
+        }
 
-            var mode = TaskUpdateModeParser.Parse(updateMode);
-            var result = await batchService.ApplyAsync(mode, tasks.ToImmutableArray(), globalAnalysisResult)
-                .ConfigureAwait(false);
-            return promptBuilder.Build(updateMode, result.CreatedTasks, result.AllTasks);
-        }
-        catch (Exception ex)
-        {
-            return $"Error while splitting tasks: {ex.Message}";
-        }
+        var mode = TaskUpdateModeParser.Parse(updateMode);
+        var batchResult = await batchService.ApplyAsync(mode, tasks.ToImmutableArray(), globalAnalysisResult)
+            .ConfigureAwait(false);
+
+        return batchResult.Match(
+            result => promptBuilder.Build(updateMode, result.CreatedTasks, result.AllTasks),
+            error => $"Error while splitting tasks: {error}");
     }
 
     [McpServerTool(Name = "list_tasks")]
@@ -88,7 +85,13 @@ internal static class TaskTools
         TaskStore taskStore,
         [Description("Status filter: all, pending, in_progress, completed.")] string status = "all")
     {
-        var tasks = await taskStore.GetAllAsync().ConfigureAwait(false);
+        var tasksResult = await taskStore.GetAllAsync().ConfigureAwait(false);
+        if (tasksResult.IsFailure)
+        {
+            return tasksResult.Error;
+        }
+
+        var tasks = tasksResult.Value;
         var filterStatus = TaskStatusFormatter.ParseFilter(status);
         var filtered = filterStatus.HasValue
             ? tasks.Where(task => task.Status == filterStatus.Value).ToImmutableArray()
@@ -106,7 +109,13 @@ internal static class TaskTools
         [Description("Page number.")] int page = 1,
         [Description("Number of items per page.")] int pageSize = 3)
     {
-        var result = await searchService.SearchAsync(query, isId, page, pageSize).ConfigureAwait(false);
+        var searchResult = await searchService.SearchAsync(query, isId, page, pageSize).ConfigureAwait(false);
+        if (searchResult.IsFailure)
+        {
+            return $"Search failed: {searchResult.Error}";
+        }
+
+        var result = searchResult.Value;
         return promptBuilder.Build(
             query,
             result.Tasks,
@@ -124,21 +133,19 @@ internal static class TaskTools
         TaskSearchService searchService,
         [Description("Task ID to retrieve.")] string taskId)
     {
-        try
+        var taskMaybe = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
+        
+        if (taskMaybe.HasNoValue)
         {
-            var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
-            if (task is null)
+            // Fallback to search
+            var searchResult = await searchService.SearchAsync(taskId, true, 1, 1).ConfigureAwait(false);
+            if (searchResult.IsSuccess && searchResult.Value.Tasks.Length > 0)
             {
-                var search = await searchService.SearchAsync(taskId, true, 1, 1).ConfigureAwait(false);
-                task = search.Tasks.FirstOrDefault();
+                return promptBuilder.Build(taskId, searchResult.Value.Tasks[0], null);
             }
+        }
 
-            return promptBuilder.Build(taskId, task, null);
-        }
-        catch (Exception ex)
-        {
-            return promptBuilder.Build(taskId, null, ex.Message);
-        }
+        return promptBuilder.Build(taskId, taskMaybe.GetValueOrDefault(), null);
     }
 
     [McpServerTool(Name = "execute_task")]
@@ -149,12 +156,13 @@ internal static class TaskTools
         TaskStore taskStore,
         [Description("Task ID to execute.")] string taskId)
     {
-        var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
-        if (task is null)
+        var taskMaybe = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
+        if (taskMaybe.HasNoValue)
         {
             return $"Task with ID `{taskId}` could not be found. Please confirm the ID and try again.";
         }
 
+        var task = taskMaybe.Value;
         if (task.Status == TaskStatus.InProgress)
         {
             return $"Task \"{task.Name}\" (ID: `{taskId}`) is already in progress.";
@@ -165,7 +173,13 @@ internal static class TaskTools
             return $"Task \"{task.Name}\" (ID: `{taskId}`) is already completed. Delete and recreate it to execute again.";
         }
 
-        var executionCheck = await workflowService.CanExecuteAsync(task).ConfigureAwait(false);
+        var executionCheckResult = await workflowService.CanExecuteAsync(task).ConfigureAwait(false);
+        if (executionCheckResult.IsFailure)
+        {
+            return $"Task \"{task.Name}\" (ID: `{taskId}`) check failed: {executionCheckResult.Error}";
+        }
+        
+        var executionCheck = executionCheckResult.Value;
         if (!executionCheck.CanExecute)
         {
             var blockedBy = executionCheck.BlockedBy.IsDefaultOrEmpty
@@ -174,9 +188,15 @@ internal static class TaskTools
             return $"Task \"{task.Name}\" (ID: `{taskId}`) cannot be executed. {blockedBy}";
         }
 
-        await workflowService.UpdateStatusAsync(taskId, TaskStatus.InProgress).ConfigureAwait(false);
+        var updateResult = await workflowService.UpdateStatusAsync(taskId, TaskStatus.InProgress).ConfigureAwait(false);
+        if (updateResult.IsFailure)
+        {
+            return $"Failed to update task status: {updateResult.Error}";
+        }
+        
         var complexity = workflowService.AssessComplexity(task);
-        var dependencies = await workflowService.LoadDependencyTasksAsync(task).ConfigureAwait(false);
+        var dependenciesResult = await workflowService.LoadDependencyTasksAsync(task).ConfigureAwait(false);
+        var dependencies = dependenciesResult.IsSuccess ? dependenciesResult.Value : ImmutableArray<TaskItem>.Empty;
         var relatedFilesSummary = workflowService.BuildRelatedFilesSummary(task);
 
         return promptBuilder.Build(task, complexity, relatedFilesSummary, dependencies);
@@ -192,12 +212,13 @@ internal static class TaskTools
         [Description("Overall score from 0-100.")] int score,
         [Description("Summary of verification findings.")] string summary)
     {
-        var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
-        if (task is null)
+        var taskMaybe = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
+        if (taskMaybe.HasNoValue)
         {
             return $"Task with ID `{taskId}` could not be found. Use list_tasks to confirm a valid ID.";
         }
 
+        var task = taskMaybe.Value;
         if (task.Status != TaskStatus.InProgress)
         {
             var status = TaskStatusFormatter.ToSerializedValue(task.Status);
@@ -206,8 +227,17 @@ internal static class TaskTools
 
         if (score >= 80)
         {
-            await workflowService.UpdateSummaryAsync(taskId, summary).ConfigureAwait(false);
-            await workflowService.UpdateStatusAsync(taskId, TaskStatus.Completed).ConfigureAwait(false);
+            var summaryResult = await workflowService.UpdateSummaryAsync(taskId, summary).ConfigureAwait(false);
+            if (summaryResult.IsFailure)
+            {
+                return $"Failed to update summary: {summaryResult.Error}";
+            }
+            
+            var statusResult = await workflowService.UpdateStatusAsync(taskId, TaskStatus.Completed).ConfigureAwait(false);
+            if (statusResult.IsFailure)
+            {
+                return $"Failed to update status: {statusResult.Error}";
+            }
         }
 
         return promptBuilder.Build(task, score, summary);
@@ -220,22 +250,23 @@ internal static class TaskTools
         TaskStore taskStore,
         [Description("Task ID to delete.")] string taskId)
     {
-        var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
-        if (task is null)
+        var taskMaybe = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
+        if (taskMaybe.HasNoValue)
         {
             return promptBuilder.BuildNotFound(taskId);
         }
 
+        var task = taskMaybe.Value;
         if (task.Status == TaskStatus.Completed)
         {
             return promptBuilder.BuildCompleted(task);
         }
 
-        var success = await taskStore.DeleteAsync(taskId).ConfigureAwait(false);
-        var message = success
+        var deleteResult = await taskStore.DeleteAsync(taskId).ConfigureAwait(false);
+        var message = deleteResult.IsSuccess
             ? $"Task \"{task.Name}\" (ID: `{task.Id}`) has been deleted."
             : $"Task \"{task.Name}\" (ID: `{task.Id}`) could not be deleted.";
-        return promptBuilder.BuildResult(success, message);
+        return promptBuilder.BuildResult(deleteResult.IsSuccess, message);
     }
 
     [McpServerTool(Name = "clear_all_tasks")]
@@ -250,13 +281,25 @@ internal static class TaskTools
             return promptBuilder.BuildCancel();
         }
 
-        var tasks = await taskStore.GetAllAsync().ConfigureAwait(false);
+        var tasksResult = await taskStore.GetAllAsync().ConfigureAwait(false);
+        if (tasksResult.IsFailure)
+        {
+            return promptBuilder.BuildResult(false, tasksResult.Error, null);
+        }
+
+        var tasks = tasksResult.Value;
         if (tasks.IsDefaultOrEmpty)
         {
             return promptBuilder.BuildEmpty();
         }
 
-        var result = await taskStore.ClearAllAsync().ConfigureAwait(false);
+        var clearResult = await taskStore.ClearAllAsync().ConfigureAwait(false);
+        if (clearResult.IsFailure)
+        {
+            return promptBuilder.BuildResult(false, clearResult.Error, null);
+        }
+
+        var result = clearResult.Value;
         return promptBuilder.BuildResult(result.Success, result.Message, result.BackupFile);
     }
 
@@ -285,20 +328,24 @@ internal static class TaskTools
             return promptBuilder.BuildEmptyUpdate();
         }
 
-        var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
-        if (task is null)
+        var taskMaybe = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
+        if (taskMaybe.HasNoValue)
         {
             return promptBuilder.BuildNotFound(taskId);
         }
 
-        var resolvedDependencies = await ResolveDependenciesAsync(taskStore, dependencies).ConfigureAwait(false);
+        var resolvedDependenciesResult = await ResolveDependenciesAsync(taskStore, dependencies).ConfigureAwait(false);
+        if (resolvedDependenciesResult.IsFailure)
+        {
+            return promptBuilder.BuildValidation(resolvedDependenciesResult.Error.ToString());
+        }
 
         var request = new TaskUpdateRequest
         {
             Name = name,
             Description = description,
             Notes = notes,
-            Dependencies = resolvedDependencies,
+            Dependencies = dependencies is null ? null : resolvedDependenciesResult.Value,
             RelatedFiles = relatedFiles is null
                 ? null
                 : RelatedFileConverter.ToRelatedFiles(relatedFiles),
@@ -306,10 +353,10 @@ internal static class TaskTools
             VerificationCriteria = verificationCriteria
         };
 
-        var updated = await taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
-        var success = updated is not null;
+        var updateResult = await taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
+        var success = updateResult.IsSuccess;
         var message = success ? "Task updated successfully." : "Task update failed.";
-        return promptBuilder.BuildResult(success, message, updated);
+        return promptBuilder.BuildResult(success, message, updateResult.IsSuccess ? updateResult.Value : null);
     }
 
     private static bool HasUpdates(
@@ -330,16 +377,22 @@ internal static class TaskTools
                  string.IsNullOrWhiteSpace(verificationCriteria));
     }
 
-    private static async Task<ImmutableArray<string>?> ResolveDependenciesAsync(
+    private static async Task<Result<ImmutableArray<string>>> ResolveDependenciesAsync(
         TaskStore taskStore,
         string[]? dependencies)
     {
         if (dependencies is null)
         {
-            return null;
+            return Result.Success(ImmutableArray<string>.Empty);
         }
 
-        var allTasks = await taskStore.GetAllAsync().ConfigureAwait(false);
+        var allTasksResult = await taskStore.GetAllAsync().ConfigureAwait(false);
+        if (allTasksResult.IsFailure)
+        {
+            return Result.Failure<ImmutableArray<string>>(allTasksResult.Error);
+        }
+
+        var allTasks = allTasksResult.Value;
         var nameMap = TaskNameMap.Build(allTasks);
         var idSet = allTasks.Select(task => task.Id).ToImmutableHashSet();
 
@@ -355,7 +408,14 @@ internal static class TaskTools
             return PlanTaskSnapshot.Empty;
         }
 
-        var tasks = await taskStore.GetAllAsync().ConfigureAwait(false);
+        var tasksResult = await taskStore.GetAllAsync().ConfigureAwait(false);
+        if (tasksResult.IsFailure)
+        {
+            // If we can't read tasks, return empty snapshot rather than failing the entire operation
+            return PlanTaskSnapshot.Empty;
+        }
+
+        var tasks = tasksResult.Value;
         var completed = tasks.Where(task => task.Status == TaskStatus.Completed).ToImmutableArray();
         var pending = tasks.Where(task => task.Status != TaskStatus.Completed).ToImmutableArray();
         return new PlanTaskSnapshot(completed, pending);

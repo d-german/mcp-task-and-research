@@ -15,7 +15,7 @@ internal sealed class InitProjectRulesPromptBuilder
 
     public string Build()
     {
-        var template = _templateLoader.LoadTemplate("initProjectRules/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("initProjectRules/index.md");
         return PromptCustomization.Apply(template, "INIT_PROJECT_RULES");
     }
 }

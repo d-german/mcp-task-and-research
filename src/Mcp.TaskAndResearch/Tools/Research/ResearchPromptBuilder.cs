@@ -21,7 +21,7 @@ internal sealed class ResearchPromptBuilder
     public string BuildPrompt(ResearchModeRequest request)
     {
         var previousStateContent = BuildPreviousStateContent(request.PreviousState);
-        var template = _templateLoader.LoadTemplate("researchMode/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("researchMode/index.md");
         var memoryDir = _pathProvider.GetPaths().MemoryDirectory;
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
@@ -43,7 +43,7 @@ internal sealed class ResearchPromptBuilder
             return NoPreviousState;
         }
 
-        var template = _templateLoader.LoadTemplate("researchMode/previousState.md");
+        var template = _templateLoader.LoadTemplateOrThrow("researchMode/previousState.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["previousState"] = previousState

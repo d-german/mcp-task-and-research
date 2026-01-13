@@ -1,5 +1,7 @@
 using System.Collections.Immutable;
 using System.Text.Json;
+using CSharpFunctionalExtensions;
+using Mcp.TaskAndResearch.Extensions;
 
 namespace Mcp.TaskAndResearch.Data;
 
@@ -16,44 +18,63 @@ internal sealed class MemoryStore
         _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
-    public async Task<string> WriteSnapshotAsync(ImmutableArray<TaskItem> tasks)
+    public async Task<Result<string>> WriteSnapshotAsync(ImmutableArray<TaskItem> tasks)
     {
         var paths = _pathProvider.GetPaths();
-        EnsureDirectory(paths.MemoryDirectory);
+        
+        var ensureResult = EnsureDirectory(paths.MemoryDirectory);
+        if (ensureResult.IsFailure)
+        {
+            return Result.Failure<string>(ensureResult.Error);
+        }
 
         var fileName = CreateSnapshotFileName(_timeProvider.GetLocalNow());
         var filePath = Path.Combine(paths.MemoryDirectory, fileName);
         var document = new TaskDocument { Tasks = tasks };
 
-        await using var stream = File.Create(filePath);
-        await JsonSerializer.SerializeAsync(stream, document, _jsonOptions).ConfigureAwait(false);
-
-        return fileName;
+        return await AsyncResultExtensions.TryAsync(async () =>
+        {
+            await using var stream = File.Create(filePath);
+            await JsonSerializer.SerializeAsync(stream, document, _jsonOptions).ConfigureAwait(false);
+            return fileName;
+        }).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<TaskItem>> ReadAllSnapshotsAsync()
+    public async Task<Result<ImmutableArray<TaskItem>>> ReadAllSnapshotsAsync()
     {
         var paths = _pathProvider.GetPaths();
         if (!Directory.Exists(paths.MemoryDirectory))
         {
-            return ImmutableArray<TaskItem>.Empty;
+            return Result.Success(ImmutableArray<TaskItem>.Empty);
         }
 
         var tasks = ImmutableArray.CreateBuilder<TaskItem>();
         foreach (var file in Directory.EnumerateFiles(paths.MemoryDirectory, "*.json"))
         {
-            var snapshotTasks = await ReadSnapshotFileAsync(file).ConfigureAwait(false);
-            tasks.AddRange(snapshotTasks);
+            var snapshotResult = await ReadSnapshotFileAsync(file).ConfigureAwait(false);
+            if (snapshotResult.IsSuccess)
+            {
+                tasks.AddRange(snapshotResult.Value);
+            }
+            // Continue reading other files even if one fails
         }
 
-        return tasks.ToImmutable();
+        return Result.Success(tasks.ToImmutable());
     }
 
-    private async Task<ImmutableArray<TaskItem>> ReadSnapshotFileAsync(string filePath)
+    public async Task<Result<ImmutableArray<TaskItem>>> ReadSnapshotFileAsync(string filePath)
     {
-        await using var stream = File.OpenRead(filePath);
-        var document = await JsonSerializer.DeserializeAsync<TaskDocument>(stream, _jsonOptions).ConfigureAwait(false);
-        return document?.Tasks ?? ImmutableArray<TaskItem>.Empty;
+        if (!File.Exists(filePath))
+        {
+            return Result.Failure<ImmutableArray<TaskItem>>($"Snapshot file not found: {filePath}");
+        }
+
+        return await AsyncResultExtensions.TryAsync(async () =>
+        {
+            await using var stream = File.OpenRead(filePath);
+            var document = await JsonSerializer.DeserializeAsync<TaskDocument>(stream, _jsonOptions).ConfigureAwait(false);
+            return document?.Tasks ?? ImmutableArray<TaskItem>.Empty;
+        }).ConfigureAwait(false);
     }
 
     private static string CreateSnapshotFileName(DateTimeOffset timestamp)
@@ -61,11 +82,19 @@ internal sealed class MemoryStore
         return $"tasks_memory_{timestamp:yyyyMMddHHmmss}.json";
     }
 
-    private static void EnsureDirectory(string path)
+    private static Result EnsureDirectory(string path)
     {
-        if (!Directory.Exists(path))
+        try
         {
-            Directory.CreateDirectory(path);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure($"Failed to create directory: {ex.Message}");
         }
     }
 }

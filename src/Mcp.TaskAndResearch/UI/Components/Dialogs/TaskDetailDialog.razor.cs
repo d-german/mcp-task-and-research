@@ -53,10 +53,17 @@ public partial class TaskDetailDialog : ComponentBase
         try
         {
             var request = CreateUpdateRequest(_model);
-            var updatedTask = await TaskStore.UpdateAsync(Task.Id, request).ConfigureAwait(false);
+            var updateResult = await TaskStore.UpdateAsync(Task.Id, request).ConfigureAwait(false);
             
-            Snackbar.Add("Task saved successfully", Severity.Success);
-            await InvokeAsync(() => MudDialog.Close(DialogResult.Ok(updatedTask)));
+            if (updateResult.IsSuccess)
+            {
+                Snackbar.Add("Task saved successfully", Severity.Success);
+                await InvokeAsync(() => MudDialog.Close(DialogResult.Ok(updateResult.Value)));
+            }
+            else
+            {
+                Snackbar.Add($"Failed to save task: {updateResult.Error}", Severity.Error);
+            }
         }
         catch (Exception ex)
         {

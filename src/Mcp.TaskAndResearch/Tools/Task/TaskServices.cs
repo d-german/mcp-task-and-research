@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using CSharpFunctionalExtensions;
 using Mcp.TaskAndResearch.Data;
 using TaskStatus = Mcp.TaskAndResearch.Data.TaskStatus;
 
@@ -145,95 +146,131 @@ internal sealed class TaskBatchService
         _planner = planner;
     }
 
-    public async Task<TaskBatchResult> ApplyAsync(
+    public async Task<Result<TaskBatchResult>> ApplyAsync(
         TaskUpdateMode mode,
         ImmutableArray<TaskInput> inputs,
         string? globalAnalysisResult)
     {
-        var existing = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        var existingResult = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        if (existingResult.IsFailure)
+        {
+            return Result.Failure<TaskBatchResult>(existingResult.Error);
+        }
+
+        var existing = existingResult.Value;
         var plan = _planner.BuildPlan(mode, inputs, existing);
 
-        await ApplyRemovalsAsync(mode, plan.TasksToRemove).ConfigureAwait(false);
-        var updatedTasks = await ApplyUpdatesAsync(plan.TasksToUpdate, globalAnalysisResult).ConfigureAwait(false);
-        var createdTasks = await ApplyCreatesAsync(plan.TasksToCreate, globalAnalysisResult).ConfigureAwait(false);
+        return await ApplyRemovalsAsync(mode, plan.TasksToRemove)
+            .Bind(() => ApplyUpdatesAsync(plan.TasksToUpdate, globalAnalysisResult))
+            .Bind(updatedTasks => ApplyCreatesAsync(plan.TasksToCreate, globalAnalysisResult)
+                .Map(createdTasks => (Updated: updatedTasks, Created: createdTasks)))
+            .Bind(async results =>
+            {
+                var applyDepsResult = await ApplyDependenciesAsync(inputs).ConfigureAwait(false);
+                if (applyDepsResult.IsFailure)
+                {
+                    return Result.Failure<TaskBatchResult>(applyDepsResult.Error);
+                }
 
-        await ApplyDependenciesAsync(inputs).ConfigureAwait(false);
+                var allTasksResult = await _taskStore.GetAllAsync().ConfigureAwait(false);
+                if (allTasksResult.IsFailure)
+                {
+                    return Result.Failure<TaskBatchResult>(allTasksResult.Error);
+                }
 
-        var allTasks = await _taskStore.GetAllAsync().ConfigureAwait(false);
-        var createdOrUpdated = MergeTasks(createdTasks, updatedTasks);
-
-        return new TaskBatchResult
-        {
-            CreatedTasks = createdOrUpdated,
-            AllTasks = allTasks
-        };
+                var allTasks = allTasksResult.Value;
+                var createdOrUpdated = MergeTasks(results.Created, results.Updated);
+                return Result.Success(new TaskBatchResult
+                {
+                    CreatedTasks = createdOrUpdated,
+                    AllTasks = allTasks
+                });
+            })
+            .ConfigureAwait(false);
     }
 
-    private async System.Threading.Tasks.Task ApplyRemovalsAsync(TaskUpdateMode mode, ImmutableArray<TaskItem> toRemove)
+    private async Task<Result> ApplyRemovalsAsync(TaskUpdateMode mode, ImmutableArray<TaskItem> toRemove)
     {
         if (mode == TaskUpdateMode.ClearAllTasks)
         {
-            await _taskStore.ClearAllAsync().ConfigureAwait(false);
-            return;
+            var clearResult = await _taskStore.ClearAllAsync().ConfigureAwait(false);
+            return clearResult.IsSuccess ? Result.Success() : Result.Failure(clearResult.Error);
         }
 
         foreach (var task in toRemove)
         {
-            await _taskStore.DeleteAsync(task.Id).ConfigureAwait(false);
+            var deleteResult = await _taskStore.DeleteAsync(task.Id).ConfigureAwait(false);
+            if (deleteResult.IsFailure)
+            {
+                return Result.Failure(deleteResult.Error);
+            }
         }
+
+        return Result.Success();
     }
 
-    private async Task<ImmutableArray<TaskItem>> ApplyUpdatesAsync(
+    private async Task<Result<ImmutableArray<TaskItem>>> ApplyUpdatesAsync(
         ImmutableArray<TaskUpdateTarget> targets,
         string? globalAnalysisResult)
     {
         if (targets.IsDefaultOrEmpty)
         {
-            return ImmutableArray<TaskItem>.Empty;
+            return Result.Success(ImmutableArray<TaskItem>.Empty);
         }
 
         var builder = ImmutableArray.CreateBuilder<TaskItem>();
         foreach (var target in targets)
         {
             var request = BuildUpdateRequest(target.Input, globalAnalysisResult);
-            var updated = await _taskStore.UpdateAsync(target.Existing.Id, request).ConfigureAwait(false);
-            if (updated is not null)
+            var updateResult = await _taskStore.UpdateAsync(target.Existing.Id, request).ConfigureAwait(false);
+            if (updateResult.IsFailure)
             {
-                builder.Add(updated);
+                return Result.Failure<ImmutableArray<TaskItem>>(updateResult.Error);
             }
+            builder.Add(updateResult.Value);
         }
 
-        return builder.ToImmutable();
+        return Result.Success(builder.ToImmutable());
     }
 
-    private async Task<ImmutableArray<TaskItem>> ApplyCreatesAsync(
+    private async Task<Result<ImmutableArray<TaskItem>>> ApplyCreatesAsync(
         ImmutableArray<TaskInput> inputs,
         string? globalAnalysisResult)
     {
         if (inputs.IsDefaultOrEmpty)
         {
-            return ImmutableArray<TaskItem>.Empty;
+            return Result.Success(ImmutableArray<TaskItem>.Empty);
         }
 
         var builder = ImmutableArray.CreateBuilder<TaskItem>();
         foreach (var input in inputs)
         {
             var request = BuildCreateRequest(input, globalAnalysisResult);
-            var created = await _taskStore.CreateAsync(request).ConfigureAwait(false);
-            builder.Add(created);
+            var createResult = await _taskStore.CreateAsync(request).ConfigureAwait(false);
+            if (createResult.IsFailure)
+            {
+                return Result.Failure<ImmutableArray<TaskItem>>(createResult.Error);
+            }
+            builder.Add(createResult.Value);
         }
 
-        return builder.ToImmutable();
+        return Result.Success(builder.ToImmutable());
     }
 
-    private async System.Threading.Tasks.Task ApplyDependenciesAsync(ImmutableArray<TaskInput> inputs)
+    private async Task<Result> ApplyDependenciesAsync(ImmutableArray<TaskInput> inputs)
     {
         if (inputs.IsDefaultOrEmpty)
         {
-            return;
+            return Result.Success();
         }
 
-        var allTasks = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        var allTasksResult = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        if (allTasksResult.IsFailure)
+        {
+            return Result.Failure(allTasksResult.Error);
+        }
+
+        var allTasks = allTasksResult.Value;
         var nameMap = TaskNameMap.Build(allTasks);
         var idSet = allTasks.Select(task => task.Id).ToImmutableHashSet();
 
@@ -244,14 +281,25 @@ internal sealed class TaskBatchService
                 continue;
             }
 
-            var dependencies = TaskDependencyResolver.Resolve(input.Dependencies, nameMap, idSet);
+            var dependenciesResult = TaskDependencyResolver.Resolve(input.Dependencies, nameMap, idSet);
+            if (dependenciesResult.IsFailure)
+            {
+                continue; // Skip unresolvable dependencies for now, will be handled by validation
+            }
+
             var request = new TaskUpdateRequest
             {
-                Dependencies = dependencies
+                Dependencies = dependenciesResult.Value
             };
 
-            await _taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
+            var updateResult = await _taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
+            if (updateResult.IsFailure)
+            {
+                return Result.Failure($"Failed to apply dependencies for task '{input.Name}': {updateResult.Error}");
+            }
         }
+
+        return Result.Success();
     }
 
     private static TaskCreateRequest BuildCreateRequest(TaskInput input, string? globalAnalysisResult)
@@ -397,56 +445,71 @@ internal static class TaskDependencyResolver
         "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    public static ImmutableArray<string> Resolve(
+    public static Result<ImmutableArray<string>> Resolve(
         string[]? dependencies,
         IReadOnlyDictionary<string, string> nameMap,
         ISet<string> idSet)
     {
         if (dependencies is null || dependencies.Length == 0)
         {
-            return ImmutableArray<string>.Empty;
+            return Result.Success(ImmutableArray<string>.Empty);
         }
 
         var builder = ImmutableArray.CreateBuilder<string>();
+        var errors = new List<string>();
+
         foreach (var dependency in dependencies)
         {
             var resolved = ResolveDependency(dependency, nameMap, idSet);
-            if (!string.IsNullOrWhiteSpace(resolved))
+            if (resolved.HasValue)
             {
-                builder.Add(resolved);
+                builder.Add(resolved.Value);
+            }
+            else if (!string.IsNullOrWhiteSpace(dependency))
+            {
+                errors.Add($"Could not resolve dependency: '{dependency}'");
             }
         }
 
-        return builder.ToImmutable();
+        if (errors.Count > 0)
+        {
+            return Result.Failure<ImmutableArray<string>>(
+                new DependencyResolutionError(string.Join("; ", errors)).Message);
+        }
+
+        return Result.Success(builder.ToImmutable());
     }
 
-    private static string? ResolveDependency(
+    private static Maybe<string> ResolveDependency(
         string? dependency,
         IReadOnlyDictionary<string, string> nameMap,
         ISet<string> idSet)
     {
         if (string.IsNullOrWhiteSpace(dependency))
         {
-            return null;
+            return Maybe<string>.None;
         }
 
         var trimmed = dependency.Trim();
         if (GuidRegex.IsMatch(trimmed))
         {
-            return idSet.Contains(trimmed) ? trimmed : null;
+            return idSet.Contains(trimmed) ? Maybe.From(trimmed) : Maybe<string>.None;
         }
 
-        return nameMap.TryGetValue(trimmed, out var taskId) ? taskId : null;
+        return nameMap.TryGetValue(trimmed, out var taskId) 
+            ? Maybe.From(taskId) 
+            : Maybe<string>.None;
     }
 }
 
 internal static class TaskInputValidator
 {
-    public static string? ValidateUniqueNames(TaskInput[]? tasks)
+    public static Result ValidateUniqueNames(TaskInput[]? tasks)
     {
         if (tasks is null || tasks.Length == 0)
         {
-            return "No tasks were provided.";
+            return Result.Failure(
+                new TaskValidationError("No tasks were provided.").Message);
         }
 
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -454,11 +517,12 @@ internal static class TaskInputValidator
         {
             if (!seen.Add(task.Name))
             {
-                return "Duplicate task names detected. Ensure each task name is unique.";
+                return Result.Failure(
+                    new TaskValidationError("Duplicate task names detected. Ensure each task name is unique.").Message);
             }
         }
 
-        return null;
+        return Result.Success();
     }
 }
 
@@ -489,44 +553,56 @@ internal sealed class TaskWorkflowService
         return _complexityAssessor.Assess(task);
     }
 
-    public async Task<TaskExecutionCheck> CanExecuteAsync(TaskItem task)
+    public async Task<Result<TaskExecutionCheck>> CanExecuteAsync(TaskItem task)
     {
         if (task.Status == TaskStatus.Completed)
         {
-            return new TaskExecutionCheck(false, ImmutableArray<string>.Empty);
+            return Result.Success(new TaskExecutionCheck(false, ImmutableArray<string>.Empty));
         }
 
         if (task.Dependencies.IsDefaultOrEmpty)
         {
-            return TaskExecutionCheck.Allowed;
+            return Result.Success(TaskExecutionCheck.Allowed);
         }
 
-        var allTasks = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        var allTasksResult = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        if (allTasksResult.IsFailure)
+        {
+            return Result.Failure<TaskExecutionCheck>(allTasksResult.Error);
+        }
+
+        var allTasks = allTasksResult.Value;
         var blocked = FindBlockedDependencies(task.Dependencies, allTasks);
 
-        return new TaskExecutionCheck(blocked.IsDefaultOrEmpty, blocked);
+        return Result.Success(new TaskExecutionCheck(blocked.IsDefaultOrEmpty, blocked));
     }
 
-    public async System.Threading.Tasks.Task UpdateStatusAsync(string taskId, TaskStatus status)
+    public async Task<Result<TaskItem>> UpdateStatusAsync(string taskId, TaskStatus status)
     {
         var request = new TaskUpdateRequest { Status = status };
-        await _taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
+        return await _taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
     }
 
-    public async System.Threading.Tasks.Task UpdateSummaryAsync(string taskId, string summary)
+    public async Task<Result<TaskItem>> UpdateSummaryAsync(string taskId, string summary)
     {
         var request = new TaskUpdateRequest { Summary = summary };
-        await _taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
+        return await _taskStore.UpdateAsync(taskId, request).ConfigureAwait(false);
     }
 
-    public async Task<ImmutableArray<TaskItem>> LoadDependencyTasksAsync(TaskItem task)
+    public async Task<Result<ImmutableArray<TaskItem>>> LoadDependencyTasksAsync(TaskItem task)
     {
         if (task.Dependencies.IsDefaultOrEmpty)
         {
-            return ImmutableArray<TaskItem>.Empty;
+            return Result.Success(ImmutableArray<TaskItem>.Empty);
         }
 
-        var allTasks = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        var allTasksResult = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        if (allTasksResult.IsFailure)
+        {
+            return Result.Failure<ImmutableArray<TaskItem>>(allTasksResult.Error);
+        }
+
+        var allTasks = allTasksResult.Value;
         var builder = ImmutableArray.CreateBuilder<TaskItem>();
         foreach (var dependency in task.Dependencies)
         {
@@ -537,7 +613,7 @@ internal sealed class TaskWorkflowService
             }
         }
 
-        return builder.ToImmutable();
+        return Result.Success(builder.ToImmutable());
     }
 
     public string BuildRelatedFilesSummary(TaskItem task)

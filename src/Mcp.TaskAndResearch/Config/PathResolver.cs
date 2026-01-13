@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 
 namespace Mcp.TaskAndResearch.Config;
@@ -66,27 +67,28 @@ internal sealed class PathResolver
     public string ResolveWorkspaceRoot()
     {
         return GetPreferredRoot()
-            ?? _configReader.GetWorkspaceRootOverride()
+            .GetValueOrDefault(_configReader.GetWorkspaceRootOverride())
             ?? GetFallbackRoot();
     }
 
-    private string? GetPreferredRoot()
+    private Maybe<string> GetPreferredRoot()
     {
         var snapshot = _rootStore.Snapshot;
-        return FirstNonEmpty(snapshot.ListRoots) ?? FirstNonEmpty(snapshot.InitializeRoots);
+        var listRoot = FirstNonEmpty(snapshot.ListRoots);
+        return listRoot.HasValue ? listRoot : FirstNonEmpty(snapshot.InitializeRoots);
     }
 
-    private static string? FirstNonEmpty(ImmutableArray<string> roots)
+    private static Maybe<string> FirstNonEmpty(ImmutableArray<string> roots)
     {
         foreach (var root in roots)
         {
             if (!string.IsNullOrWhiteSpace(root))
             {
-                return root;
+                return Maybe.From(root);
             }
         }
 
-        return null;
+        return Maybe<string>.None;
     }
 
     private static string GetFallbackRoot()

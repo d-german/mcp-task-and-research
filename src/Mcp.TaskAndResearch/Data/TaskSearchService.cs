@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using CSharpFunctionalExtensions;
 
 namespace Mcp.TaskAndResearch.Data;
 
@@ -27,17 +28,24 @@ internal sealed class TaskSearchService
         _memoryStore = memoryStore;
     }
 
-    public async Task<TaskSearchResult> SearchAsync(string query, bool isId, int page, int pageSize)
+    public async Task<Result<TaskSearchResult>> SearchAsync(string query, bool isId, int page, int pageSize)
     {
-        var currentTasks = await _taskStore.GetAllAsync().ConfigureAwait(false);
-        var memoryTasks = await _memoryStore.ReadAllSnapshotsAsync().ConfigureAwait(false);
+        var currentTasksResult = await _taskStore.GetAllAsync().ConfigureAwait(false);
+        if (currentTasksResult.IsFailure)
+        {
+            return Result.Failure<TaskSearchResult>(currentTasksResult.Error);
+        }
+
+        var currentTasks = currentTasksResult.Value;
+        var memoryResult = await _memoryStore.ReadAllSnapshotsAsync().ConfigureAwait(false);
+        var memoryTasks = memoryResult.IsSuccess ? memoryResult.Value : ImmutableArray<TaskItem>.Empty;
 
         var filteredCurrent = FilterTasks(currentTasks, query, isId);
         var filteredMemory = FilterTasks(memoryTasks, query, isId);
         var merged = MergeTasks(filteredCurrent, filteredMemory);
         var sorted = SortTasks(merged);
 
-        return Paginate(sorted, page, pageSize);
+        return Result.Success(Paginate(sorted, page, pageSize));
     }
 
     private static ImmutableArray<TaskItem> FilterTasks(ImmutableArray<TaskItem> tasks, string query, bool isId)

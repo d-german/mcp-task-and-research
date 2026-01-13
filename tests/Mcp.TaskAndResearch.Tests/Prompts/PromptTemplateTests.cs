@@ -24,8 +24,9 @@ public sealed class PromptTemplateTests
         var resolver = new PathResolver(new WorkspaceRootStore(), new ConfigReader(), NullLogger<PathResolver>.Instance);
         var loader = new PromptTemplateLoader(resolver);
 
-        var content = loader.LoadTemplate("tests/basic.md");
+        var result = loader.LoadTemplate("tests/basic.md");
 
-        Assert.Equal("Hello {name}.", content.Trim());
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Hello {name}.", result.Value.Trim());
     }
 }

@@ -1,4 +1,6 @@
+using CSharpFunctionalExtensions;
 using Mcp.TaskAndResearch.Config;
+using Mcp.TaskAndResearch.Data;
 
 namespace Mcp.TaskAndResearch.Prompts;
 
@@ -13,7 +15,7 @@ internal sealed class PromptTemplateLoader
         _pathResolver = pathResolver;
     }
 
-    public string LoadTemplate(string templatePath)
+    public Result<string> LoadTemplate(string templatePath)
     {
         var templateSet = GetTemplateSetName();
         var dataDir = _pathResolver.ResolveDataDirectory();
@@ -22,16 +24,28 @@ internal sealed class PromptTemplateLoader
 
         if (File.Exists(customPath))
         {
-            return File.ReadAllText(customPath);
+            return Result.Try(() => File.ReadAllText(customPath));
         }
 
         if (File.Exists(builtInPath))
         {
-            return File.ReadAllText(builtInPath);
+            return Result.Try(() => File.ReadAllText(builtInPath));
         }
 
-        throw new FileNotFoundException(
-            $"Template file not found: '{templatePath}'. Checked paths:{Environment.NewLine} - {customPath}{Environment.NewLine} - {builtInPath}");
+        return Result.Failure<string>(
+            new TemplateNotFoundError(templatePath, [customPath, builtInPath]).Message);
+    }
+
+    /// <summary>
+    /// Loads template and returns content, or throws if template not found.
+    /// Use this for built-in templates that must exist.
+    /// </summary>
+    public string LoadTemplateOrThrow(string templatePath)
+    {
+        var result = LoadTemplate(templatePath);
+        return result.IsSuccess 
+            ? result.Value 
+            : throw new FileNotFoundException(result.Error);
     }
 
     private static string GetTemplateSetName()

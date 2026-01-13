@@ -24,9 +24,9 @@ internal sealed class ProcessThoughtPromptBuilder
         bool nextThoughtNeeded)
     {
         var nextThoughtTemplate = nextThoughtNeeded
-            ? _templateLoader.LoadTemplate("processThought/moreThought.md")
-            : _templateLoader.LoadTemplate("processThought/complatedThought.md");
-        var indexTemplate = _templateLoader.LoadTemplate("processThought/index.md");
+            ? _templateLoader.LoadTemplateOrThrow("processThought/moreThought.md")
+            : _templateLoader.LoadTemplateOrThrow("processThought/complatedThought.md");
+        var indexTemplate = _templateLoader.LoadTemplateOrThrow("processThought/index.md");
         var prompt = PromptTemplateRenderer.Render(indexTemplate, new Dictionary<string, object?>
         {
             ["thought"] = thought,

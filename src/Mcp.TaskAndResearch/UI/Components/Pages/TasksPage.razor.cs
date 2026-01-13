@@ -52,7 +52,17 @@ private Func<TaskItem, bool> _quickFilter => task =>
         
         try
         {
-            _tasks = await TaskReader.GetAllAsync().ConfigureAwait(false);
+            var tasksResult = await TaskReader.GetAllAsync().ConfigureAwait(false);
+            if (tasksResult.IsFailure)
+            {
+                Logger.LogError("Failed to load tasks: {Error}", tasksResult.Error);
+                Snackbar.Add($"Failed to load tasks: {tasksResult.Error}", Severity.Error);
+                _tasks = [];
+            }
+            else
+            {
+                _tasks = tasksResult.Value;
+            }
         }
         catch (Exception ex)
         {

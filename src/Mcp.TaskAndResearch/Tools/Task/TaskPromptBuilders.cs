@@ -18,7 +18,7 @@ internal sealed class AnalyzeTaskPromptBuilder
     public string Build(string summary, string initialConcept, string? previousAnalysis)
     {
         var iterationPrompt = BuildIteration(previousAnalysis);
-        var template = _templateLoader.LoadTemplate("analyzeTask/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("analyzeTask/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["summary"] = summary,
@@ -36,7 +36,7 @@ internal sealed class AnalyzeTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("analyzeTask/iteration.md");
+        var template = _templateLoader.LoadTemplateOrThrow("analyzeTask/iteration.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["previousAnalysis"] = previousAnalysis
@@ -55,7 +55,7 @@ internal sealed class ReflectTaskPromptBuilder
 
     public string Build(string summary, string analysis)
     {
-        var template = _templateLoader.LoadTemplate("reflectTask/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("reflectTask/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["summary"] = summary,
@@ -87,7 +87,7 @@ internal sealed class PlanTaskPromptBuilder
     {
         var tasksTemplate = BuildTasksTemplate(existingTasksReference, completedTasks, pendingTasks);
         var thoughtTemplate = LoadThoughtTemplate();
-        var template = _templateLoader.LoadTemplate("planTask/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("planTask/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["description"] = description,
@@ -117,7 +117,7 @@ internal sealed class PlanTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("planTask/tasks.md");
+        var template = _templateLoader.LoadTemplateOrThrow("planTask/tasks.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["completedTasks"] = BuildCompletedTasksContent(completedTasks),
@@ -208,7 +208,7 @@ internal sealed class PlanTaskPromptBuilder
             ? "planTask/noThought.md"
             : "planTask/hasThought.md";
 
-        return _templateLoader.LoadTemplate(templatePath);
+        return _templateLoader.LoadTemplateOrThrow(templatePath);
     }
 
     private static string Truncate(string value, int maxLength)
@@ -236,9 +236,9 @@ internal sealed class SplitTasksPromptBuilder
         ImmutableArray<TaskItem> createdTasks,
         ImmutableArray<TaskItem> allTasks)
     {
-        var taskDetailsTemplate = _templateLoader.LoadTemplate("splitTasks/taskDetails.md");
+        var taskDetailsTemplate = _templateLoader.LoadTemplateOrThrow("splitTasks/taskDetails.md");
         var tasksContent = BuildTasksContent(taskDetailsTemplate, createdTasks, allTasks);
-        var indexTemplate = _templateLoader.LoadTemplate("splitTasks/index.md");
+        var indexTemplate = _templateLoader.LoadTemplateOrThrow("splitTasks/index.md");
         var prompt = PromptTemplateRenderer.Render(indexTemplate, new Dictionary<string, object?>
         {
             ["updateMode"] = updateMode,
@@ -335,7 +335,7 @@ internal sealed class ExecuteTaskPromptBuilder
         var relatedFilesSummaryPrompt = BuildRelatedFilesSummaryPrompt(relatedFilesSummary);
         var complexityPrompt = BuildComplexityPrompt(complexityAssessment);
 
-        var template = _templateLoader.LoadTemplate("executeTask/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["name"] = task.Name,
@@ -365,7 +365,7 @@ internal sealed class ExecuteTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("executeTask/notes.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/notes.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["notes"] = task.Notes
@@ -379,7 +379,7 @@ internal sealed class ExecuteTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("executeTask/implementationGuide.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/implementationGuide.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["implementationGuide"] = task.ImplementationGuide
@@ -393,7 +393,7 @@ internal sealed class ExecuteTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("executeTask/verificationCriteria.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/verificationCriteria.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["verificationCriteria"] = task.VerificationCriteria
@@ -407,7 +407,7 @@ internal sealed class ExecuteTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("executeTask/analysisResult.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/analysisResult.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["analysisResult"] = task.AnalysisResult
@@ -430,7 +430,7 @@ internal sealed class ExecuteTaskPromptBuilder
         }
 
         var content = string.Join("\n\n", completed.Select(FormatDependencySummary));
-        var template = _templateLoader.LoadTemplate("executeTask/dependencyTasks.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/dependencyTasks.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["dependencyTasks"] = content + "\n"
@@ -439,7 +439,7 @@ internal sealed class ExecuteTaskPromptBuilder
 
     private string BuildRelatedFilesSummaryPrompt(string relatedFilesSummary)
     {
-        var template = _templateLoader.LoadTemplate("executeTask/relatedFilesSummary.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/relatedFilesSummary.md");
         var summary = string.IsNullOrWhiteSpace(relatedFilesSummary)
             ? "The current task has no associated files."
             : relatedFilesSummary;
@@ -457,7 +457,7 @@ internal sealed class ExecuteTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("executeTask/complexity.md");
+        var template = _templateLoader.LoadTemplateOrThrow("executeTask/complexity.md");
         var recommendations = BuildRecommendationContent(assessment.Recommendations);
         var levelLabel = TaskComplexityLevelFormatter.ToLabel(assessment.Level);
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
@@ -511,7 +511,7 @@ internal sealed class VerifyTaskPromptBuilder
     {
         if (score < 80)
         {
-            var noPassTemplate = _templateLoader.LoadTemplate("verifyTask/noPass.md");
+            var noPassTemplate = _templateLoader.LoadTemplateOrThrow("verifyTask/noPass.md");
             return PromptTemplateRenderer.Render(noPassTemplate, new Dictionary<string, object?>
             {
                 ["name"] = task.Name,
@@ -520,7 +520,7 @@ internal sealed class VerifyTaskPromptBuilder
             });
         }
 
-        var template = _templateLoader.LoadTemplate("verifyTask/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("verifyTask/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["name"] = task.Name,
@@ -551,7 +551,7 @@ internal sealed class ListTasksPromptBuilder
         var tasksByStatus = BucketTasks(allTasks);
         var statusCounts = BuildStatusCounts(tasksByStatus);
         var taskDetails = BuildTaskDetails(tasksByStatus, TaskStatusFormatter.ParseFilter(status));
-        var template = _templateLoader.LoadTemplate("listTasks/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("listTasks/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["statusCount"] = statusCounts,
@@ -566,7 +566,7 @@ internal sealed class ListTasksPromptBuilder
         var statusText = string.Equals(status, "all", StringComparison.OrdinalIgnoreCase)
             ? "any"
             : $"any {status}";
-        var template = _templateLoader.LoadTemplate("listTasks/notFound.md");
+        var template = _templateLoader.LoadTemplateOrThrow("listTasks/notFound.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["statusText"] = statusText
@@ -606,7 +606,7 @@ internal sealed class ListTasksPromptBuilder
         Dictionary<TaskStatus, ImmutableArray<TaskItem>> tasksByStatus,
         TaskStatus? filterStatus)
     {
-        var template = _templateLoader.LoadTemplate("listTasks/taskDetails.md");
+        var template = _templateLoader.LoadTemplateOrThrow("listTasks/taskDetails.md");
         var builder = new List<string>();
         foreach (var status in Enum.GetValues<TaskStatus>())
         {
@@ -696,7 +696,7 @@ internal sealed class QueryTaskPromptBuilder
     {
         if (tasks.IsDefaultOrEmpty)
         {
-            var notFoundTemplate = _templateLoader.LoadTemplate("queryTask/notFound.md");
+            var notFoundTemplate = _templateLoader.LoadTemplateOrThrow("queryTask/notFound.md");
             return PromptTemplateRenderer.Render(notFoundTemplate, new Dictionary<string, object?>
             {
                 ["query"] = query
@@ -704,7 +704,7 @@ internal sealed class QueryTaskPromptBuilder
         }
 
         var tasksContent = BuildTasksContent(tasks);
-        var indexTemplate = _templateLoader.LoadTemplate("queryTask/index.md");
+        var indexTemplate = _templateLoader.LoadTemplateOrThrow("queryTask/index.md");
         var prompt = PromptTemplateRenderer.Render(indexTemplate, new Dictionary<string, object?>
         {
             ["tasksContent"] = tasksContent,
@@ -720,7 +720,7 @@ internal sealed class QueryTaskPromptBuilder
 
     private string BuildTasksContent(ImmutableArray<TaskItem> tasks)
     {
-        var template = _templateLoader.LoadTemplate("queryTask/taskDetails.md");
+        var template = _templateLoader.LoadTemplateOrThrow("queryTask/taskDetails.md");
         var builder = new List<string>(tasks.Length);
         foreach (var task in tasks)
         {
@@ -761,7 +761,7 @@ internal sealed class GetTaskDetailPromptBuilder
     {
         if (!string.IsNullOrWhiteSpace(error))
         {
-            var errorTemplate = _templateLoader.LoadTemplate("getTaskDetail/error.md");
+            var errorTemplate = _templateLoader.LoadTemplateOrThrow("getTaskDetail/error.md");
             return PromptTemplateRenderer.Render(errorTemplate, new Dictionary<string, object?>
             {
                 ["errorMessage"] = error
@@ -770,7 +770,7 @@ internal sealed class GetTaskDetailPromptBuilder
 
         if (task is null)
         {
-            var notFoundTemplate = _templateLoader.LoadTemplate("getTaskDetail/notFound.md");
+            var notFoundTemplate = _templateLoader.LoadTemplateOrThrow("getTaskDetail/notFound.md");
             return PromptTemplateRenderer.Render(notFoundTemplate, new Dictionary<string, object?>
             {
                 ["taskId"] = taskId
@@ -784,7 +784,7 @@ internal sealed class GetTaskDetailPromptBuilder
         var relatedFilesPrompt = BuildRelatedFilesPrompt(task);
         var completedSummaryPrompt = BuildCompletedSummaryPrompt(task);
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["name"] = task.Name,
@@ -811,7 +811,7 @@ internal sealed class GetTaskDetailPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/notes.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/notes.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["notes"] = task.Notes
@@ -825,7 +825,7 @@ internal sealed class GetTaskDetailPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/dependencies.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/dependencies.md");
         var dependencies = string.Join(", ", task.Dependencies.Select(dep => $"`{dep.TaskId}`"));
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
@@ -840,7 +840,7 @@ internal sealed class GetTaskDetailPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/implementationGuide.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/implementationGuide.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["implementationGuide"] = task.ImplementationGuide
@@ -854,7 +854,7 @@ internal sealed class GetTaskDetailPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/verificationCriteria.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/verificationCriteria.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["verificationCriteria"] = task.VerificationCriteria
@@ -874,7 +874,7 @@ internal sealed class GetTaskDetailPromptBuilder
             return $"- `{file.Path}` ({file.Type}){description}";
         });
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/relatedFiles.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/relatedFiles.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["files"] = string.Join("\n", lines)
@@ -888,7 +888,7 @@ internal sealed class GetTaskDetailPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("getTaskDetail/complatedSummary.md");
+        var template = _templateLoader.LoadTemplateOrThrow("getTaskDetail/complatedSummary.md");
         var summary = string.IsNullOrWhiteSpace(task.Summary) ? "*No completion summary*" : task.Summary;
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
@@ -909,7 +909,7 @@ internal sealed class UpdateTaskPromptBuilder
 
     public string BuildNotFound(string taskId)
     {
-        var template = _templateLoader.LoadTemplate("updateTaskContent/notFound.md");
+        var template = _templateLoader.LoadTemplateOrThrow("updateTaskContent/notFound.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["taskId"] = taskId
@@ -918,7 +918,7 @@ internal sealed class UpdateTaskPromptBuilder
 
     public string BuildValidation(string error)
     {
-        var template = _templateLoader.LoadTemplate("updateTaskContent/validation.md");
+        var template = _templateLoader.LoadTemplateOrThrow("updateTaskContent/validation.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["error"] = error
@@ -927,7 +927,7 @@ internal sealed class UpdateTaskPromptBuilder
 
     public string BuildEmptyUpdate()
     {
-        var template = _templateLoader.LoadTemplate("updateTaskContent/emptyUpdate.md");
+        var template = _templateLoader.LoadTemplateOrThrow("updateTaskContent/emptyUpdate.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>());
     }
 
@@ -940,7 +940,7 @@ internal sealed class UpdateTaskPromptBuilder
             content += BuildSuccessDetails(updatedTask);
         }
 
-        var template = _templateLoader.LoadTemplate("updateTaskContent/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("updateTaskContent/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["responseTitle"] = responseTitle,
@@ -952,7 +952,7 @@ internal sealed class UpdateTaskPromptBuilder
 
     private string BuildSuccessDetails(TaskItem updatedTask)
     {
-        var template = _templateLoader.LoadTemplate("updateTaskContent/success.md");
+        var template = _templateLoader.LoadTemplateOrThrow("updateTaskContent/success.md");
         var filesContent = BuildRelatedFilesContent(updatedTask.RelatedFiles);
         var taskNotes = BuildNotes(updatedTask.Notes);
         var description = Truncate(updatedTask.Description, 100);
@@ -975,7 +975,7 @@ internal sealed class UpdateTaskPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("updateTaskContent/fileDetails.md");
+        var template = _templateLoader.LoadTemplateOrThrow("updateTaskContent/fileDetails.md");
         var grouped = relatedFiles.GroupBy(file => file.Type);
         var content = string.Empty;
         foreach (var group in grouped)
@@ -1025,7 +1025,7 @@ internal sealed class DeleteTaskPromptBuilder
 
     public string BuildNotFound(string taskId)
     {
-        var template = _templateLoader.LoadTemplate("deleteTask/notFound.md");
+        var template = _templateLoader.LoadTemplateOrThrow("deleteTask/notFound.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["taskId"] = taskId
@@ -1034,7 +1034,7 @@ internal sealed class DeleteTaskPromptBuilder
 
     public string BuildCompleted(TaskItem task)
     {
-        var template = _templateLoader.LoadTemplate("deleteTask/completed.md");
+        var template = _templateLoader.LoadTemplateOrThrow("deleteTask/completed.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["taskName"] = task.Name,
@@ -1045,7 +1045,7 @@ internal sealed class DeleteTaskPromptBuilder
     public string BuildResult(bool success, string message)
     {
         var responseTitle = success ? "Success" : "Failure";
-        var template = _templateLoader.LoadTemplate("deleteTask/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("deleteTask/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["responseTitle"] = responseTitle,
@@ -1067,13 +1067,13 @@ internal sealed class ClearAllTasksPromptBuilder
 
     public string BuildCancel()
     {
-        var template = _templateLoader.LoadTemplate("clearAllTasks/cancel.md");
+        var template = _templateLoader.LoadTemplateOrThrow("clearAllTasks/cancel.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>());
     }
 
     public string BuildEmpty()
     {
-        var template = _templateLoader.LoadTemplate("clearAllTasks/empty.md");
+        var template = _templateLoader.LoadTemplateOrThrow("clearAllTasks/empty.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>());
     }
 
@@ -1081,7 +1081,7 @@ internal sealed class ClearAllTasksPromptBuilder
     {
         var responseTitle = success ? "Success" : "Failure";
         var backupInfo = BuildBackupInfo(backupFile);
-        var template = _templateLoader.LoadTemplate("clearAllTasks/index.md");
+        var template = _templateLoader.LoadTemplateOrThrow("clearAllTasks/index.md");
         var prompt = PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["responseTitle"] = responseTitle,
@@ -1099,7 +1099,7 @@ internal sealed class ClearAllTasksPromptBuilder
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("clearAllTasks/backupInfo.md");
+        var template = _templateLoader.LoadTemplateOrThrow("clearAllTasks/backupInfo.md");
         return PromptTemplateRenderer.Render(template, new Dictionary<string, object?>
         {
             ["backupFile"] = backupFile
