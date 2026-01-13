@@ -7,35 +7,50 @@ namespace Mcp.TaskAndResearch.Services;
 public sealed class AudioNotificationService
 {
     private const string EnableBeepKey = "ENABLE_COMPLETION_BEEP";
+    private const string FrequencyKey = "BEEP_FREQUENCY";
+    private const string DurationKey = "BEEP_DURATION";
     private const int DefaultFrequency = 2500;
-    private const int DefaultDuration = 500;
+    private const int DefaultDuration = 1000;
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// Gets whether audio notifications are enabled via environment variable.
-    /// &lt;/summary&gt;
+    /// </summary>
     public bool IsEnabled { get; }
+
+    /// <summary>
+    /// Gets the configured beep frequency in Hz.
+    /// </summary>
+    public int Frequency { get; }
+
+    /// <summary>
+    /// Gets the configured beep duration in milliseconds.
+    /// </summary>
+    public int Duration { get; }
 
     public AudioNotificationService()
     {
         var setting = Environment.GetEnvironmentVariable(EnableBeepKey);
         IsEnabled = string.Equals(setting, "true", StringComparison.OrdinalIgnoreCase);
+
+        Frequency = ParseIntEnvironmentVariable(FrequencyKey, DefaultFrequency, 37, 32767);
+        Duration = ParseIntEnvironmentVariable(DurationKey, DefaultDuration, 100, 5000);
     }
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// Plays a completion beep if notifications are enabled.
-    /// &lt;/summary&gt;
-    /// &lt;returns&gt;True if beep was played, false if disabled.&lt;/returns&gt;
+    /// </summary>
+    /// <returns>True if beep was played, false if disabled.</returns>
     public bool PlayCompletionBeep()
     {
-        return PlayBeep(DefaultFrequency, DefaultDuration);
+        return PlayBeep(Frequency, Duration);
     }
 
-    /// &lt;summary&gt;
+    /// <summary>
     /// Plays a beep with custom frequency and duration if notifications are enabled.
-    /// &lt;/summary&gt;
-    /// &lt;param name="frequency"&gt;Frequency in Hz (37-32767).&lt;/param&gt;
-    /// &lt;param name="duration"&gt;Duration in milliseconds.&lt;/param&gt;
-    /// &lt;returns&gt;True if beep was played, false if disabled.&lt;/returns&gt;
+    /// </summary>
+    /// <param name="frequency">Frequency in Hz (37-32767).</param>
+    /// <param name="duration">Duration in milliseconds.</param>
+    /// <returns>True if beep was played, false if disabled.</returns>
     public bool PlayBeep(int frequency, int duration)
     {
         if (!IsEnabled)
@@ -59,5 +74,21 @@ public sealed class AudioNotificationService
             // Silently fail if beep cannot be played (e.g., no audio device)
             return false;
         }
+    }
+
+    private static int ParseIntEnvironmentVariable(string key, int defaultValue, int min, int max)
+    {
+        var value = Environment.GetEnvironmentVariable(key);
+        if (string.IsNullOrEmpty(value))
+        {
+            return defaultValue;
+        }
+
+        if (int.TryParse(value, out var parsed) && parsed >= min && parsed <= max)
+        {
+            return parsed;
+        }
+
+        return defaultValue;
     }
 }

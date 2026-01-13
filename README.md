@@ -149,6 +149,7 @@ You: "plan task: set up CI/CD pipeline"
 
 ## 🛠️ Available MCP Tools
 
+### Task Management Tools
 | Tool | Description |
 |------|-------------|
 | `plan_task` | Analyze requirements and create a structured task plan |
@@ -161,9 +162,21 @@ You: "plan task: set up CI/CD pipeline"
 | `clear_all_tasks` | Archive and clear all tasks |
 | `query_task` | Search tasks by keyword or ID |
 | `get_task_detail` | Get full details for a specific task |
+
+### Research & Thinking Tools
+| Tool | Description |
+|------|-------------|
 | `research_mode` | Enter guided research mode for a topic |
 | `process_thought` | Record structured thinking steps |
+| `analyze_task` | Deep analysis of task requirements and approach |
+| `reflect_task` | Critical review of analysis results for optimization |
+
+### Project & Utility Tools
+| Tool | Description |
+|------|-------------|
 | `init_project_rules` | Initialize project coding standards |
+| `get_server_info` | Returns basic server metadata |
+| `play_beep` | Play an audible beep notification (Windows only)
 
 ---
 
@@ -248,7 +261,8 @@ After installing globally, add to `.vscode/mcp.json`. A relative `DATA_DIR` (e.g
       "env": {
         "DATA_DIR": ".mcp-tasks",
         "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_AUTO_OPEN": "true"
+        "TASK_MANAGER_UI_AUTO_OPEN": "true",
+        "ENABLE_COMPLETION_BEEP": "true"
       }
     }
   }
@@ -424,11 +438,21 @@ Add to your project's `.vscode/mcp.json` (create if it doesn't exist):
 
 ## Environment Variables
 
+### Core Settings
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DATA_DIR` | `.mcp-tasks` | **Use absolute path!** Folder for task data storage |
 | `TASK_MANAGER_UI` | `false` | Enable Blazor web dashboard (auto-selects available port starting at 9998) |
 | `TASK_MANAGER_UI_AUTO_OPEN` | `false` | Auto-open browser when server starts |
+
+### Audio Notification Settings
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENABLE_COMPLETION_BEEP` | `false` | Enable audible beep notifications via `play_beep` tool |
+| `BEEP_FREQUENCY` | `2500` | Beep frequency in Hz (range: 37-32767) |
+| `BEEP_DURATION` | `1000` | Beep duration in milliseconds (range: 100-5000) |
+
+> **Note**: The `play_beep` tool only works on Windows. It's useful for getting notified when an AI agent completes a long-running task.
 
 ---
 
