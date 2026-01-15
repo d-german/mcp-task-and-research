@@ -1,3 +1,492 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "id": "bc404a8b-fd25-47cd-9713-2b2c588b5eca",
+      "name": "Refactor PathResolver.GetFallbackRoot try-catch",
+      "description": "Convert the try-catch block in GetFallbackRoot() method (line 96) that wraps Directory.GetCurrentDirectory() to use Try() with a fallback. Currently returns fallback value on exception. This means that this private method be returning a Result\u003Cstring\u003E instead. And we need to be converting other return types We need to elevate those be the monad so it will work with the rest of the code",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.6134653-06:00",
+      "updatedAt": "2026-01-13T14:43:25.2677975-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Config/PathResolver.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 95,
+          "lineEnd": 105
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E Directory.GetCurrentDirectory()).GetValueOrDefault(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))",
+      "verificationCriteria": "Method returns directory path without procedural try-catch. Tests pass."
+    },
+    {
+      "id": "84e27474-b064-4f7c-a4fa-8d5d28b303b9",
+      "name": "Refactor MemoryStore.EnsureDirectory try-catch",
+      "description": "Convert the try-catch block in EnsureDirectory() method (line 87) that wraps Directory.CreateDirectory() to use Try() pattern. Currently returns Result type already.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.6567305-06:00",
+      "updatedAt": "2026-01-13T14:40:05.1515501-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Data/MemoryStore.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 85,
+          "lineEnd": 98
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E { if (!Directory.Exists(path)) Directory.CreateDirectory(path); }).MapError(ex =\u003E $\u0022Failed to create directory: {ex}\u0022)",
+      "verificationCriteria": "Method uses functional Try() pattern. Returns Result type. Tests pass."
+    },
+    {
+      "id": "53d23be2-3d5f-480b-9ba8-006abffbb270",
+      "name": "Refactor TaskStore.ReadDocumentAsync semaphore try-finally",
+      "description": "Convert the try-finally block in ReadDocumentAsync() (line 212) that handles FileLock semaphore to use a functional pattern or IDisposable wrapper.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.6630319-06:00",
+      "updatedAt": "2026-01-13T14:40:05.1910252-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Data/TaskStore.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 210,
+          "lineEnd": 225
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Consider creating a SemaphoreSlimLock disposable wrapper or use Try() with Finally() extension. The semaphore release must happen regardless of success/failure.",
+      "verificationCriteria": "Semaphore properly released using functional pattern. File operations work correctly."
+    },
+    {
+      "id": "4a0fd3d1-873a-4499-8e30-d201a702657e",
+      "name": "Refactor TaskStore.WriteDocumentAsync semaphore try-finally",
+      "description": "Convert the try-finally block in WriteDocumentAsync() (line 233) that handles FileLock semaphore to use a functional pattern.",
+      "status": "Pending",
+      "dependencies": [
+        {
+          "taskId": "53d23be2-3d5f-480b-9ba8-006abffbb270"
+        }
+      ],
+      "createdAt": "2026-01-13T14:40:04.6681414-06:00",
+      "updatedAt": "2026-01-13T14:40:05.2336419-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Data/TaskStore.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 230,
+          "lineEnd": 243
+        },
+        {
+          "path": "src/Mcp.TaskAndResearch/Data/TaskStore.cs",
+          "type": "REFERENCE",
+          "lineStart": 210,
+          "lineEnd": 225
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Apply same pattern as ReadDocumentAsync - use disposable wrapper or Try() with Finally().",
+      "verificationCriteria": "Consistent pattern with ReadDocumentAsync. Semaphore properly released."
+    },
+    {
+      "id": "3bf134b5-0826-4963-849b-2dc67e692491",
+      "name": "Refactor TaskStore.TryDeleteFile try-catch",
+      "description": "Convert the try-catch block in TryDeleteFile() (line 339) that silently ignores file deletion failures to use Try() pattern.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.6732205-06:00",
+      "updatedAt": "2026-01-13T14:40:05.2690658-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Data/TaskStore.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 337,
+          "lineEnd": 348
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E { if (File.Exists(path)) File.Delete(path); }) and ignore the result (fire-and-forget cleanup). Or use .Tap()/.TapError() for optional logging.",
+      "verificationCriteria": "Method uses Try() pattern. Failures are still silently ignored as intended."
+    },
+    {
+      "id": "87d718f9-b5b5-4325-97dd-0636cf5ebbc8",
+      "name": "Refactor ServerHost.IsPortAvailable try-catch",
+      "description": "Convert the try-catch block in IsPortAvailable() (line 159) that catches SocketException to determine port availability.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.6779277-06:00",
+      "updatedAt": "2026-01-13T14:40:05.3034107-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Server/ServerHost.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 157,
+          "lineEnd": 172
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E { using var listener = new TcpListener(...); listener.Start(); listener.Stop(); return true; }).GetValueOrDefault(false)",
+      "verificationCriteria": "Method returns bool using functional pattern. Port detection works correctly."
+    },
+    {
+      "id": "68f26282-4a85-411c-9782-181215b19fbb",
+      "name": "Refactor ServerHost.OpenBrowser try-catch",
+      "description": "Convert the try-catch block in OpenBrowser() (line 180) that silently ignores browser open failures.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.7206094-06:00",
+      "updatedAt": "2026-01-13T14:40:05.3366972-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Server/ServerHost.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 178,
+          "lineEnd": 192
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E Process.Start(psi)) and ignore result. Fire-and-forget pattern.",
+      "verificationCriteria": "Method uses Try() pattern. Errors still silently ignored."
+    },
+    {
+      "id": "ff33fbf1-0fab-49cd-b0ba-91d4a336bbd8",
+      "name": "Refactor AudioNotificationService.PlayBeepInternal try-catch",
+      "description": "Convert the try-catch block (line 67) that wraps Console.Beep() and returns bool on failure.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.7448871-06:00",
+      "updatedAt": "2026-01-13T14:40:05.3817717-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Services/AudioNotificationService.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 65,
+          "lineEnd": 80
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E { Console.Beep(frequency, duration); return true; }).GetValueOrDefault(false)",
+      "verificationCriteria": "Method uses Try() pattern. Returns false on failure as before."
+    },
+    {
+      "id": "3e5ae4ad-6dc0-4b7d-837b-afab2d576c1b",
+      "name": "Refactor TaskDetailDialog.Save try-catch",
+      "description": "Convert the try-catch block in Save() method (line 53) that wraps task update operations and shows Snackbar on error.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.7601112-06:00",
+      "updatedAt": "2026-01-13T14:40:05.4127549-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Dialogs/TaskDetailDialog.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 51,
+          "lineEnd": 72
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Chain the existing Result from UpdateAsync with .TapError() for error handling. Use .Match() or .Finally() for Snackbar notifications.",
+      "verificationCriteria": "Save operation uses Result chaining. Error messages displayed correctly."
+    },
+    {
+      "id": "e865ec44-8965-4509-ae5a-b0882698301c",
+      "name": "Refactor MainLayout.LoadDarkModePreferenceAsync try-catch",
+      "description": "Convert the try-catch block (line 69) that wraps localStorage.getItem JS interop call.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.7692656-06:00",
+      "updatedAt": "2026-01-13T14:40:05.4433512-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Layout/MainLayout.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 67,
+          "lineEnd": 80
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync(async () =\u003E await JsRuntime.InvokeAsync\u003Cstring?\u003E(...)). Use .GetValueOrDefault() for fallback.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Default dark mode used on failure."
+    },
+    {
+      "id": "36c48016-e535-4ad3-821e-452d11801dfb",
+      "name": "Refactor MainLayout.SaveDarkModePreferenceAsync try-catch",
+      "description": "Convert the try-catch block (line 85) that wraps localStorage.setItem JS interop call.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.796724-06:00",
+      "updatedAt": "2026-01-13T14:40:05.4768154-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Layout/MainLayout.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 83,
+          "lineEnd": 93
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync(async () =\u003E await JsRuntime.InvokeVoidAsync(...)). Ignore failures (fire-and-forget).",
+      "verificationCriteria": "Method uses TryAsync() pattern. Failures silently ignored."
+    },
+    {
+      "id": "542ae86a-b903-465b-b655-871a88973b4a",
+      "name": "Refactor HistoryView.LoadHistoryAsync try-catch",
+      "description": "Convert the try-catch-finally block (line 52) that loads history data and handles loading state.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8276579-06:00",
+      "updatedAt": "2026-01-13T14:40:05.5050201-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/HistoryView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 50,
+          "lineEnd": 95
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Compose the async operations using Result.Combine() or sequential .Bind() calls. Use .Finally() for loading state management.",
+      "verificationCriteria": "Method uses functional Result composition. Loading state managed correctly."
+    },
+    {
+      "id": "fb9d3a76-de76-4d0f-ae81-f72a3ae492ba",
+      "name": "Refactor SettingsView.LoadSettingsAsync try-catch",
+      "description": "Convert the try-catch block (line 30) that loads settings from localStorage.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8375542-06:00",
+      "updatedAt": "2026-01-13T14:40:05.5338766-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/SettingsView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 28,
+          "lineEnd": 42
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync(async () =\u003E await JsRuntime.InvokeAsync\u003Cstring?\u003E(...)). Chain with .Map() for deserialization.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Default settings on failure."
+    },
+    {
+      "id": "ecd21d71-359c-4803-b056-9536b8519f7f",
+      "name": "Refactor SettingsView.SaveSettings try-catch",
+      "description": "Convert the try-catch block (line 46) that saves settings to localStorage.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8456469-06:00",
+      "updatedAt": "2026-01-13T14:40:05.6479763-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/SettingsView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 44,
+          "lineEnd": 56
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync() and .Tap()/.TapError() for Snackbar notifications.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Success/error messages shown correctly."
+    },
+    {
+      "id": "b447edb3-2b91-4151-a992-f0cceacdce35",
+      "name": "Refactor SettingsView.ExportSettings try-catch",
+      "description": "Convert the try-catch block (line 60) that copies settings to clipboard.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8556035-06:00",
+      "updatedAt": "2026-01-13T14:40:05.6851163-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/SettingsView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 58,
+          "lineEnd": 70
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync() and .Tap()/.TapError() for Snackbar notifications.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Success/error messages shown correctly."
+    },
+    {
+      "id": "1586d464-0110-40e6-9fec-b5d5d2e3e72b",
+      "name": "Refactor SettingsView.ImportSettings try-catch",
+      "description": "Convert the try-catch block (line 74) that imports settings from clipboard.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8644134-06:00",
+      "updatedAt": "2026-01-13T14:40:05.7126155-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/SettingsView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 72,
+          "lineEnd": 90
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync() with .Bind() for sequential operations (read clipboard, deserialize, save). Use .Tap()/.TapError() for notifications.",
+      "verificationCriteria": "Method uses TryAsync() with Result chaining. Success/error messages shown correctly."
+    },
+    {
+      "id": "f917904a-ee7d-499f-aead-0343fe46aaf6",
+      "name": "Refactor TasksPage.LoadTasksAsync try-catch",
+      "description": "Convert the try-catch-finally block (line 53) that loads tasks and manages loading state.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8732882-06:00",
+      "updatedAt": "2026-01-13T14:40:05.7384512-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/TasksPage.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 51,
+          "lineEnd": 80
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "The inner code already uses Result pattern. Wrap the outer exception handling. Use .Finally() for loading state.",
+      "verificationCriteria": "Method uses functional pattern. Loading state managed correctly. Error logging preserved."
+    },
+    {
+      "id": "98feaa11-74ff-4071-9eb0-6deb801f708f",
+      "name": "Refactor TasksPage.OpenTaskDialogAsync try-catch",
+      "description": "Convert the try-catch block (line 98) that opens task dialog and handles errors.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.8904872-06:00",
+      "updatedAt": "2026-01-13T14:40:05.7654144-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/TasksPage.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 96,
+          "lineEnd": 125
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync() to wrap dialog operations. Use .TapError() for error logging and Snackbar.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Error handling preserved."
+    },
+    {
+      "id": "aea0e287-9dcf-4d57-92c6-9278c083e089",
+      "name": "Refactor TemplatesView.LoadTemplatesAsync try-catch",
+      "description": "Convert the try-catch-finally block (line 47) that loads templates and manages loading state.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.9022658-06:00",
+      "updatedAt": "2026-01-13T14:40:05.7912345-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/TemplatesView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 45,
+          "lineEnd": 65
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync() to wrap template loading. Use .Finally() for loading state management.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Loading state managed correctly."
+    },
+    {
+      "id": "67feb191-4225-4866-8fdd-b16086454b21",
+      "name": "Refactor TemplatesView.SaveTemplate try-catch",
+      "description": "Convert the try-catch block (line 119) that saves template content to file.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.9500532-06:00",
+      "updatedAt": "2026-01-13T14:40:05.8292621-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Pages/TemplatesView.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 117,
+          "lineEnd": 140
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync(async () =\u003E await File.WriteAllTextAsync(...)). Chain with .Tap() for success notification and .TapError() for error.",
+      "verificationCriteria": "Method uses TryAsync() pattern. Success/error notifications preserved."
+    },
+    {
+      "id": "cce0339f-6972-4a8a-bf6f-1799d890925c",
+      "name": "Refactor KeyboardShortcuts.DisposeAsync try-catch",
+      "description": "Convert the try-catch block (line 121) in DisposeAsync() that handles JS interop disposal.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.9691985-06:00",
+      "updatedAt": "2026-01-13T14:40:05.8567402-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Components/Shared/KeyboardShortcuts.razor.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 119,
+          "lineEnd": 132
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use TryAsync(async () =\u003E await JsRuntime.InvokeVoidAsync(\u0022keyboardShortcuts.dispose\u0022)). Ignore failures (disposal should be silent).",
+      "verificationCriteria": "Method uses TryAsync() pattern. Disposal failures silently ignored."
+    },
+    {
+      "id": "c29c0374-58a4-4c56-96e7-56fb41e874b3",
+      "name": "Refactor JsonStringLocalizer.LoadTranslations try-catch",
+      "description": "Convert the try-catch block (line 74) that loads JSON translation files.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:04.9910144-06:00",
+      "updatedAt": "2026-01-13T14:40:05.8809017-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/UI/Services/JsonStringLocalizer.cs",
+          "type": "TO_MODIFY",
+          "lineStart": 72,
+          "lineEnd": 90
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Use Try(() =\u003E File.ReadAllText(filePath)).Bind(json =\u003E Try(() =\u003E JsonSerializer.Deserialize\u003C...\u003E(json))).GetValueOrDefault(new Dictionary\u003Cstring, object\u003E())",
+      "verificationCriteria": "Method uses Try() pattern. Returns empty dictionary on failure."
+    },
+    {
+      "id": "d5f752a3-f31b-4137-9aa9-5de486ed4f47",
+      "name": "Add ResultExtensions.TryFinally helper method",
+      "description": "Add a TryFinally extension method to support try-finally patterns (like semaphore release) in a functional style.",
+      "notes": "This is a prerequisite for some other tasks that need try-finally pattern support.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:05.0128002-06:00",
+      "updatedAt": "2026-01-13T14:40:05.905525-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Extensions/ResultExtensions.cs",
+          "type": "TO_MODIFY"
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Add TryFinally\u003CT\u003E(Func\u003CT\u003E operation, Action finallyAction) that executes the finally action regardless of success/failure, then returns the result.",
+      "verificationCriteria": "New helper method added. Unit tests cover success and failure scenarios."
+    },
+    {
+      "id": "666fc89b-6197-465a-a677-d798cab8ce77",
+      "name": "Add SemaphoreSlimExtensions for functional lock pattern",
+      "description": "Create extension methods for SemaphoreSlim that enable functional locking patterns, replacing try-finally blocks for semaphore handling.",
+      "notes": "This is a prerequisite for TaskStore semaphore refactoring tasks.",
+      "status": "Pending",
+      "dependencies": [],
+      "createdAt": "2026-01-13T14:40:05.0485572-06:00",
+      "updatedAt": "2026-01-13T14:40:05.9298358-06:00",
+      "relatedFiles": [
+        {
+          "path": "src/Mcp.TaskAndResearch/Extensions/SemaphoreSlimExtensions.cs",
+          "type": "OTHER"
+        }
+      ],
+      "analysisResult": "Found 22 procedural try-catch blocks across the codebase. After analysis, 3 are in ResultExtensions.cs (the helper implementation itself - do NOT refactor). 19 remaining blocks are candidates for refactoring to use the functional Result pattern with Try() helpers.",
+      "implementationGuide": "Create WithLockAsync\u003CT\u003E(this SemaphoreSlim semaphore, Func\u003CTask\u003CT\u003E\u003E operation) that acquires lock, executes, and releases in functional style.",
+      "verificationCriteria": "New extension class created. TaskStore can use it for file locking."
+    }
+  ]
 }
