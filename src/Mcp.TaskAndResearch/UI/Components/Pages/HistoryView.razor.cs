@@ -20,6 +20,9 @@ public partial class HistoryView : ComponentBase, IDisposable
     private bool _isLoading = true;
     private DateRange? _dateRange;
     private Data.TaskStatus? _statusFilter;
+    private string _searchText = string.Empty;
+    private readonly HashSet<string> _expandedTaskIds = [];
+    private ImmutableArray<TaskItem> _allTasks = ImmutableArray<TaskItem>.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,7 +74,8 @@ public partial class HistoryView : ComponentBase, IDisposable
                 allTasks.Add(task);
             }
             
-            _historyItems = BuildHistoryFromTasks(allTasks.ToImmutable(), _dateRange, _statusFilter);
+            _allTasks = allTasks.ToImmutable();
+            _historyItems = BuildHistoryFromTasks(_allTasks, _dateRange, _statusFilter, _searchText);
         }
         catch (Exception ex)
         {
@@ -88,12 +92,19 @@ public partial class HistoryView : ComponentBase, IDisposable
     private static List<HistoryItem> BuildHistoryFromTasks(
         ImmutableArray<TaskItem> tasks,
         DateRange? dateRange,
-        Data.TaskStatus? statusFilter)
+        Data.TaskStatus? statusFilter,
+        string searchText)
     {
         var items = new List<HistoryItem>();
 
         foreach (var task in tasks)
         {
+            // Apply fuzzy search filter
+            if (!Services.FuzzySearchService.MatchesTaskSearch(task, searchText))
+            {
+                continue;
+            }
+
             // Add creation event
             if (IsInDateRange(task.CreatedAt, dateRange))
             {
@@ -102,7 +113,8 @@ public partial class HistoryView : ComponentBase, IDisposable
                     task.Name,
                     task.CreatedAt,
                     Data.TaskStatus.Pending,
-                    "Task created"));
+                    "Task created",
+                    task));
             }
 
             // Add completion event if completed
@@ -113,7 +125,8 @@ public partial class HistoryView : ComponentBase, IDisposable
                     task.Name,
                     task.CompletedAt.Value,
                     Data.TaskStatus.Completed,
-                    task.Summary ?? "Task completed"));
+                    task.Summary ?? "Task completed",
+                    task));
             }
 
             // Add last update if different from creation
@@ -124,7 +137,8 @@ public partial class HistoryView : ComponentBase, IDisposable
                     task.Name,
                     task.UpdatedAt,
                     task.Status,
-                    $"Status: {task.Status}"));
+                    $"Status: {task.Status}",
+                    task));
             }
         }
 
@@ -175,10 +189,47 @@ public partial class HistoryView : ComponentBase, IDisposable
         _ => Icons.Material.Outlined.Help
     };
 
+    private async Task OnDateRangeChangedAsync(DateRange? newRange)
+    {
+        _dateRange = newRange;
+        await ApplyFiltersAsync();
+    }
+
+    private async Task OnStatusFilterChangedAsync(Data.TaskStatus? newStatus)
+    {
+        _statusFilter = newStatus;
+        await ApplyFiltersAsync();
+    }
+
+    private async Task OnSearchTextChangedAsync(string? newText)
+    {
+        _searchText = newText ?? string.Empty;
+        await ApplyFiltersAsync();
+    }
+
+    private Task ApplyFiltersAsync()
+    {
+        _historyItems = BuildHistoryFromTasks(_allTasks, _dateRange, _statusFilter, _searchText);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private void ToggleExpand(string taskId)
+    {
+        if (!_expandedTaskIds.Add(taskId))
+        {
+            _expandedTaskIds.Remove(taskId);
+        }
+        StateHasChanged();
+    }
+
+    private bool IsExpanded(string taskId) => _expandedTaskIds.Contains(taskId);
+
     private sealed record HistoryItem(
         string TaskId,
         string TaskName,
         DateTimeOffset Timestamp,
         Data.TaskStatus Status,
-        string? Summary);
+        string? Summary,
+        TaskItem? Task = null);
 }

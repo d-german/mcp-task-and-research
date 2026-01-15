@@ -119,11 +119,7 @@ private Func<TaskItem, bool> _quickFilter => task =>
 
     private static bool MatchesSearch(TaskItem task, string search)
     {
-        var searchLower = search.ToLowerInvariant();
-        
-        return task.Name.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
-               task.Description.Contains(searchLower, StringComparison.OrdinalIgnoreCase) ||
-task.Id.Contains(searchLower, StringComparison.OrdinalIgnoreCase);
+        return Services.FuzzySearchService.MatchesTaskSearch(task, search);
     }
 
     private static Color GetStatusColor(Data.TaskStatus status) => status switch

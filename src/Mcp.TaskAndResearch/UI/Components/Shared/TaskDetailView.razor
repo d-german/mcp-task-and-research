@@ -1,0 +1,124 @@
+@using Mcp.TaskAndResearch.Data
+
+<MudGrid Spacing="2">
+    @* Description - Always shown *@
+    <MudItem xs="12">
+        <MudText Typo="Typo.subtitle2" Class="mb-1">Description</MudText>
+        <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.Description</MudText>
+    </MudItem>
+
+    @* Notes - Conditional *@
+    @if (!string.IsNullOrWhiteSpace(Task.Notes))
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Notes</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.Notes</MudText>
+        </MudItem>
+    }
+
+    @* Analysis Result - Conditional *@
+    @if (!string.IsNullOrWhiteSpace(Task.AnalysisResult))
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Analysis</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.AnalysisResult</MudText>
+        </MudItem>
+    }
+
+    @* Implementation Guide - Conditional *@
+    @if (!string.IsNullOrWhiteSpace(Task.ImplementationGuide))
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Implementation Guide</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.ImplementationGuide</MudText>
+        </MudItem>
+    }
+
+    @* Verification Criteria - Conditional *@
+    @if (!string.IsNullOrWhiteSpace(Task.VerificationCriteria))
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Verification Criteria</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.VerificationCriteria</MudText>
+        </MudItem>
+    }
+
+    @* Related Files - Conditional *@
+    @if (Task.RelatedFiles.Length > 0)
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Related Files</MudText>
+            <MudList T="string" Dense="true">
+                @foreach (var file in Task.RelatedFiles)
+                {
+                    <MudListItem T="string" Icon="@GetFileIcon(file.Type)">
+                        <MudText Typo="Typo.body2">
+                            @file.Path
+                            @if (file.LineStart.HasValue && file.LineEnd.HasValue)
+                            {
+                                <text> (Lines @file.LineStart - @file.LineEnd)</text>
+                            }
+                            @if (!string.IsNullOrWhiteSpace(file.Description))
+                            {
+                                <br />
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@file.Description</MudText>
+                            }
+                        </MudText>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudItem>
+    }
+
+    @* Dependencies - Conditional *@
+    @if (Task.Dependencies.Length > 0)
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Dependencies</MudText>
+            <MudChipSet T="string">
+                @foreach (var dep in Task.Dependencies)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@dep.TaskId</MudChip>
+                }
+            </MudChipSet>
+        </MudItem>
+    }
+
+    @* Timestamps and Agent *@
+    <MudItem xs="12">
+        <MudStack Row="true" Spacing="3">
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                Created: @Task.CreatedAt.ToString("g")
+            </MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                Updated: @Task.UpdatedAt.ToString("g")
+            </MudText>
+            @if (Task.CompletedAt.HasValue)
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Completed: @Task.CompletedAt.Value.ToString("g")
+                </MudText>
+            }
+            @if (!string.IsNullOrWhiteSpace(Task.Agent))
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Agent: @Task.Agent
+                </MudText>
+            }
+        </MudStack>
+    </MudItem>
+</MudGrid>
+
+@code {
+    [Parameter, EditorRequired]
+    public required TaskItem Task { get; set; }
+
+    private static string GetFileIcon(RelatedFileType type) => type switch
+    {
+        RelatedFileType.TO_MODIFY => Icons.Material.Filled.Edit,
+        RelatedFileType.REFERENCE => Icons.Material.Filled.Book,
+        RelatedFileType.CREATE => Icons.Material.Filled.Add,
+        RelatedFileType.DEPENDENCY => Icons.Material.Filled.Link,
+        _ => Icons.Material.Filled.Description
+    };
+}
