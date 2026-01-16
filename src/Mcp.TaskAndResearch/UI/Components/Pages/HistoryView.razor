@@ -106,7 +106,7 @@ else
                             @if (IsExpanded(item.TaskId) && item.Task is not null)
                             {
                                 <MudDivider Class="my-2" />
-                                <TaskDetailView @key="@($"{item.TaskId}_{_searchText}")" Task="@item.Task" OnDependencyClick="OnDependencyClickedAsync" SearchTerm="@_searchText" />
+                                <TaskDetailView @key="@($"{item.TaskId}_{item.Timestamp.Ticks}_{_searchText}")" Task="@item.Task" OnDependencyClick="OnDependencyClickedAsync" SearchTerm="@_searchText" />
                             }
                         </MudStack>
                     </MudCard>

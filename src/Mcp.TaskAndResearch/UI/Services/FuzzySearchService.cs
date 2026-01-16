@@ -40,6 +40,7 @@ public static class FuzzySearchService
     {
         return
         [
+            task.Id,
             task.Name,
             task.Description,
             task.Notes ?? string.Empty,
