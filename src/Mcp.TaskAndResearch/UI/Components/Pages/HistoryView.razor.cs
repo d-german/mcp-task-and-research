@@ -24,7 +24,7 @@ public partial class HistoryView : ComponentBase, IDisposable
     private DateRange? _dateRange;
     private Data.TaskStatus? _statusFilter;
     private string _searchText = string.Empty;
-    private readonly HashSet<string> _expandedTaskIds = [];
+    private readonly HashSet<string> _expandedEntryKeys = [];
     private ImmutableArray<TaskItem> _allTasks = ImmutableArray<TaskItem>.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -217,16 +217,18 @@ public partial class HistoryView : ComponentBase, IDisposable
         return Task.CompletedTask;
     }
 
-    private void ToggleExpand(string taskId)
+    private void ToggleExpand(string entryKey)
     {
-        if (!_expandedTaskIds.Add(taskId))
+        if (!_expandedEntryKeys.Add(entryKey))
         {
-            _expandedTaskIds.Remove(taskId);
+            _expandedEntryKeys.Remove(entryKey);
         }
         StateHasChanged();
     }
 
-    private bool IsExpanded(string taskId) => _expandedTaskIds.Contains(taskId);
+    private bool IsExpanded(string entryKey) => _expandedEntryKeys.Contains(entryKey);
+
+    private static string GetEntryKey(HistoryItem item) => $"{item.TaskId}_{item.Timestamp.Ticks}";
 
     private static string FormatRelativeTime(DateTimeOffset timestamp)
     {
@@ -288,7 +290,11 @@ public partial class HistoryView : ComponentBase, IDisposable
 
     private async Task OnDependencyClickedAsync(string taskId)
     {
+        // First try active tasks
         var task = await TaskReader.GetByIdAsync(taskId).ConfigureAwait(false);
+
+        // Fallback to archived tasks in history if not found in active store
+        task ??= _allTasks.FirstOrDefault(t => t.Id == taskId);
 
         if (task is null)
         {

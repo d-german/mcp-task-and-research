@@ -65,9 +65,9 @@ else
                     <MudCard Elevation="1" Class="pa-3">
                         <MudStack Spacing="1">
                             <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-                                <MudIconButton Icon="@(IsExpanded(item.TaskId) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                                <MudIconButton Icon="@(IsExpanded(GetEntryKey(item)) ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
                                                Size="Size.Small"
-                                               OnClick="@(() => ToggleExpand(item.TaskId))"
+                                               OnClick="@(() => ToggleExpand(GetEntryKey(item)))"
                                                aria-label="Toggle details" />
                                 @if (string.IsNullOrWhiteSpace(_searchText))
                                 {
@@ -103,7 +103,7 @@ else
                                     </MudText>
                                 }
                             }
-                            @if (IsExpanded(item.TaskId) && item.Task is not null)
+                            @if (IsExpanded(GetEntryKey(item)) && item.Task is not null)
                             {
                                 <MudDivider Class="my-2" />
                                 <TaskDetailView @key="@($"{item.TaskId}_{item.Timestamp.Ticks}_{_searchText}")" Task="@item.Task" OnDependencyClick="OnDependencyClickedAsync" SearchTerm="@_searchText" />

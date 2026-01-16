@@ -1,17 +1,26 @@
+using System.Reflection;
 using Mcp.TaskAndResearch.Server;
+
+var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.0";
+
+if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
+{
+    Console.WriteLine(version);
+    return;
+}
 
 if (args.Length > 0 && (args[0] == "--help" || args[0] == "-h" || args[0] == "-?"))
 {
-    PrintHelp();
+    PrintHelp(version);
     return;
 }
 
 await ServerHost.RunAsync(args);
 
-static void PrintHelp()
+static void PrintHelp(string version)
 {
-    Console.WriteLine("""
-    MCP Task and Research Server v1.0.8
+    Console.WriteLine($$"""
+    MCP Task and Research Server v{{version}}
     ====================================
     A Model Context Protocol (MCP) server for task management and research workflows.
 
