@@ -16,6 +16,9 @@ public partial class HistoryView : ComponentBase, IDisposable
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
     private List<HistoryItem> _historyItems = [];
     private bool _isLoading = true;
     private DateRange? _dateRange;
@@ -224,6 +227,91 @@ public partial class HistoryView : ComponentBase, IDisposable
     }
 
     private bool IsExpanded(string taskId) => _expandedTaskIds.Contains(taskId);
+
+    private static string FormatRelativeTime(DateTimeOffset timestamp)
+    {
+        var now = DateTimeOffset.Now;
+        var difference = now - timestamp;
+
+        return difference.TotalSeconds switch
+        {
+            < 60 => "just now",
+            < 3600 => $"{(int)difference.TotalMinutes}m ago",
+            < 86400 => $"{(int)difference.TotalHours}h ago",
+            < 172800 => "yesterday",
+            < 604800 => $"{(int)difference.TotalDays}d ago",
+            < 2592000 => $"{(int)(difference.TotalDays / 7)}w ago",
+            < 31536000 => $"{(int)(difference.TotalDays / 30)}mo ago",
+            _ => $"{(int)(difference.TotalDays / 365)}y ago"
+        };
+    }
+
+    private static string HighlightSearchTerm(string text, string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm) || string.IsNullOrWhiteSpace(text))
+        {
+            return System.Net.WebUtility.HtmlEncode(text ?? string.Empty);
+        }
+
+        // Build result string with all occurrences highlighted
+        var result = new System.Text.StringBuilder();
+        var currentIndex = 0;
+        
+        while (currentIndex < text.Length)
+        {
+            var index = text.IndexOf(searchTerm, currentIndex, StringComparison.OrdinalIgnoreCase);
+            
+            if (index < 0)
+            {
+                // No more matches - add rest of text
+                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex)));
+                break;
+            }
+            
+            // Add text before match
+            if (index > currentIndex)
+            {
+                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex, index - currentIndex)));
+            }
+            
+            // Add highlighted match
+            var actualMatch = text.Substring(index, searchTerm.Length);
+            result.Append("<mark>");
+            result.Append(System.Net.WebUtility.HtmlEncode(actualMatch));
+            result.Append("</mark>");
+            
+            currentIndex = index + searchTerm.Length;
+        }
+        
+        return result.ToString();
+    }
+
+    private async Task OnDependencyClickedAsync(string taskId)
+    {
+        var task = await TaskReader.GetByIdAsync(taskId).ConfigureAwait(false);
+
+        if (task is null)
+        {
+            await InvokeAsync(() =>
+            {
+                Snackbar.Add("Task not found (may have been deleted)", Severity.Warning);
+            });
+            return;
+        }
+
+        var parameters = new DialogParameters<Dialogs.TaskDetailDialog>
+        {
+            { x => x.Task, task }
+        };
+
+        await InvokeAsync(async () =>
+        {
+            await DialogService.ShowAsync<Dialogs.TaskDetailDialog>(
+                $"Task: {task.Name}",
+                parameters,
+                new DialogOptions { MaxWidth = MaxWidth.Medium });
+        });
+    }
 
     private sealed record HistoryItem(
         string TaskId,

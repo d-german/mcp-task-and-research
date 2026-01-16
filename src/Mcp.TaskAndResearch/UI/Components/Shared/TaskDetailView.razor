@@ -1,10 +1,24 @@
 @using Mcp.TaskAndResearch.Data
+@using Microsoft.AspNetCore.Components
 
 <MudGrid Spacing="2">
+    @* Summary - Conditional *@
+    @if (!string.IsNullOrWhiteSpace(Task.Summary))
+    {
+        <MudItem xs="12">
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Summary</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                @((MarkupString)HighlightText(Task.Summary))
+            </MudText>
+        </MudItem>
+    }
+
     @* Description - Always shown *@
     <MudItem xs="12">
         <MudText Typo="Typo.subtitle2" Class="mb-1">Description</MudText>
-        <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.Description</MudText>
+        <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+            @((MarkupString)HighlightText(Task.Description))
+        </MudText>
     </MudItem>
 
     @* Notes - Conditional *@
@@ -12,7 +26,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Notes</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.Notes</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                @((MarkupString)HighlightText(Task.Notes))
+            </MudText>
         </MudItem>
     }
 
@@ -21,7 +37,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Analysis</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.AnalysisResult</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                @((MarkupString)HighlightText(Task.AnalysisResult))
+            </MudText>
         </MudItem>
     }
 
@@ -30,7 +48,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Implementation Guide</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.ImplementationGuide</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                @((MarkupString)HighlightText(Task.ImplementationGuide))
+            </MudText>
         </MudItem>
     }
 
@@ -39,7 +59,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Verification Criteria</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Task.VerificationCriteria</MudText>
+            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                @((MarkupString)HighlightText(Task.VerificationCriteria))
+            </MudText>
         </MudItem>
     }
 
@@ -53,7 +75,7 @@
                 {
                     <MudListItem T="string" Icon="@GetFileIcon(file.Type)">
                         <MudText Typo="Typo.body2">
-                            @file.Path
+                            @((MarkupString)HighlightText(file.Path))
                             @if (file.LineStart.HasValue && file.LineEnd.HasValue)
                             {
                                 <text> (Lines @file.LineStart - @file.LineEnd)</text>
@@ -61,7 +83,9 @@
                             @if (!string.IsNullOrWhiteSpace(file.Description))
                             {
                                 <br />
-                                <MudText Typo="Typo.caption" Color="Color.Secondary">@file.Description</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                    @((MarkupString)HighlightText(file.Description))
+                                </MudText>
                             }
                         </MudText>
                     </MudListItem>
@@ -78,7 +102,12 @@
             <MudChipSet T="string">
                 @foreach (var dep in Task.Dependencies)
                 {
-                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@dep.TaskId</MudChip>
+                    <MudChip T="string" 
+                             Size="Size.Small" 
+                             Color="Color.Info"
+                             OnClick="@(() => OnDependencyClick.InvokeAsync(dep.TaskId))">
+                        @dep.TaskId
+                    </MudChip>
                 }
             </MudChipSet>
         </MudItem>
@@ -102,7 +131,7 @@
             @if (!string.IsNullOrWhiteSpace(Task.Agent))
             {
                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    Agent: @Task.Agent
+                    Agent: @((MarkupString)HighlightText(Task.Agent))
                 </MudText>
             }
         </MudStack>
@@ -113,6 +142,16 @@
     [Parameter, EditorRequired]
     public required TaskItem Task { get; set; }
 
+    [Parameter]
+    public EventCallback<string> OnDependencyClick { get; set; }
+
+    /// <summary>
+    /// Optional search term to highlight in text fields.
+    /// When provided, matching text will be wrapped in &lt;mark&gt; tags.
+    /// </summary>
+    [Parameter]
+    public string? SearchTerm { get; set; }
+
     private static string GetFileIcon(RelatedFileType type) => type switch
     {
         RelatedFileType.TO_MODIFY => Icons.Material.Filled.Edit,
@@ -121,4 +160,53 @@
         RelatedFileType.DEPENDENCY => Icons.Material.Filled.Link,
         _ => Icons.Material.Filled.Description
     };
+
+    /// <summary>
+    /// Highlights search term occurrences in text with &lt;mark&gt; tags.
+    /// XSS-safe: HTML-encodes all text before inserting markup.
+    /// </summary>
+    private string HighlightText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        if (string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            return System.Net.WebUtility.HtmlEncode(text);
+        }
+
+        // Build result string with all occurrences highlighted
+        var result = new System.Text.StringBuilder();
+        var currentIndex = 0;
+        
+        while (currentIndex < text.Length)
+        {
+            var index = text.IndexOf(SearchTerm, currentIndex, StringComparison.OrdinalIgnoreCase);
+            
+            if (index < 0)
+            {
+                // No more matches - add rest of text
+                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex)));
+                break;
+            }
+            
+            // Add text before match
+            if (index > currentIndex)
+            {
+                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex, index - currentIndex)));
+            }
+            
+            // Add highlighted match
+            var actualMatch = text.Substring(index, SearchTerm.Length);
+            result.Append("<mark>");
+            result.Append(System.Net.WebUtility.HtmlEncode(actualMatch));
+            result.Append("</mark>");
+            
+            currentIndex = index + SearchTerm.Length;
+        }
+        
+        return result.ToString();
+    }
 }

@@ -65,7 +65,14 @@ public static class FuzzySearchService
             return false;
         }
 
-        // Use PartialRatio for substring matching - ideal for searching within larger text
+        // First, check for exact substring match (case-insensitive)
+        // This ensures highlighting will work when items are shown
+        if (text.Contains(search, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Fall back to fuzzy matching for partial/typo matches
         var score = Fuzz.PartialRatio(text.ToLowerInvariant(), search.ToLowerInvariant());
         return score >= threshold;
     }

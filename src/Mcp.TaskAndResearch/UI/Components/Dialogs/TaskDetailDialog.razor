@@ -67,10 +67,15 @@
                 {
                     <MudItem xs="12">
                         <MudText Typo="Typo.subtitle2" Class="mb-2">Dependencies</MudText>
-                        <MudChipSet T="string" ReadOnly="true">
+                        <MudChipSet T="string">
                             @foreach (var dep in Task.Dependencies)
                             {
-                                <MudChip T="string" Color="Color.Info" Size="Size.Small">@dep.TaskId</MudChip>
+                                <MudChip T="string" 
+                                         Color="Color.Info" 
+                                         Size="Size.Small"
+                                         OnClick="@(() => OnDependencyClickedAsync(dep.TaskId))">
+                                    @dep.TaskId
+                                </MudChip>
                             }
                         </MudChipSet>
                     </MudItem>

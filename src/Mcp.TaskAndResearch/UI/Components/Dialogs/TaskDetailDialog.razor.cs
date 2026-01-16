@@ -18,6 +18,12 @@ public partial class TaskDetailDialog : ComponentBase
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
+    [Inject]
+    private ITaskReader TaskReader { get; set; } = default!;
+
     private MudForm _form = default!;
     private bool _isValid;
     private bool _isEditMode;
@@ -88,6 +94,33 @@ public partial class TaskDetailDialog : ComponentBase
             ImplementationGuide = model.ImplementationGuide,
             VerificationCriteria = model.VerificationCriteria
         };
+    }
+
+    private async Task OnDependencyClickedAsync(string taskId)
+    {
+        var task = await TaskReader.GetByIdAsync(taskId).ConfigureAwait(false);
+
+        if (task is null)
+        {
+            await InvokeAsync(() =>
+            {
+                Snackbar.Add("Task not found (may have been deleted)", Severity.Warning);
+            });
+            return;
+        }
+
+        var parameters = new DialogParameters<TaskDetailDialog>
+        {
+            { x => x.Task, task }
+        };
+
+        await InvokeAsync(async () =>
+        {
+            await DialogService.ShowAsync<TaskDetailDialog>(
+                $"Task: {task.Name}",
+                parameters,
+                new DialogOptions { MaxWidth = MaxWidth.Medium });
+        });
     }
 
     private sealed class EditTaskModel

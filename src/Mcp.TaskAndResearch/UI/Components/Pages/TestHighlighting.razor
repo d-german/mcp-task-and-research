@@ -1,0 +1,117 @@
+@page "/test-highlighting"
+@using Microsoft.AspNetCore.Components
+
+<PageTitle>Test Highlighting</PageTitle>
+
+<h3>Search Highlighting Test</h3>
+
+<MudPaper Class="pa-4 ma-4">
+    <MudStack Spacing="3">
+        <MudTextField @bind-Value="_searchTerm" Label="Search Term" Placeholder="Type to test highlighting..." />
+        
+        <MudDivider />
+        
+        <h4>Test Cases:</h4>
+        
+        <div>
+            <strong>Simple Test:</strong>
+            <div>
+                @if (string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <span>This is a test task with multiple task references</span>
+                }
+                else
+                {
+                    @((MarkupString)HighlightSearchTerm("This is a test task with multiple task references", _searchTerm))
+                }
+            </div>
+        </div>
+        
+        <div>
+            <strong>Case Test:</strong>
+            <div>
+                @if (string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <span>TASK Task task TaSk</span>
+                }
+                else
+                {
+                    @((MarkupString)HighlightSearchTerm("TASK Task task TaSk", _searchTerm))
+                }
+            </div>
+        </div>
+        
+        <div>
+            <strong>Special Chars Test:</strong>
+            <div>
+                @if (string.IsNullOrWhiteSpace(_searchTerm))
+                {
+                    <span>&lt;script&gt;alert('test')&lt;/script&gt; &amp; "quotes"</span>
+                }
+                else
+                {
+                    @((MarkupString)HighlightSearchTerm("<script>alert('test')</script> & \"quotes\"", _searchTerm))
+                }
+            </div>
+        </div>
+        
+        <div>
+            <strong>Raw HTML Output:</strong>
+            <pre>@HighlightSearchTerm("This is a test", _searchTerm)</pre>
+        </div>
+    </MudStack>
+</MudPaper>
+
+<style>
+mark {
+    background-color: #ffeb3b;
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+    font-weight: 500;
+}
+</style>
+
+@code {
+    private string _searchTerm = "";
+    
+    private static string HighlightSearchTerm(string text, string searchTerm)
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm) || string.IsNullOrWhiteSpace(text))
+        {
+            return System.Net.WebUtility.HtmlEncode(text ?? string.Empty);
+        }
+
+        // Build result string with all occurrences highlighted
+        var result = new System.Text.StringBuilder();
+        var currentIndex = 0;
+        
+        while (currentIndex < text.Length)
+        {
+            var index = text.IndexOf(searchTerm, currentIndex, StringComparison.OrdinalIgnoreCase);
+            
+            if (index < 0)
+            {
+                // No more matches - add rest of text
+                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex)));
+                break;
+            }
+            
+            // Add text before match
+            if (index > currentIndex)
+            {
+                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex, index - currentIndex)));
+            }
+            
+            // Add highlighted match
+            var actualMatch = text.Substring(index, searchTerm.Length);
+            result.Append("<mark>");
+            result.Append(System.Net.WebUtility.HtmlEncode(actualMatch));
+            result.Append("</mark>");
+            
+            currentIndex = index + searchTerm.Length;
+        }
+        
+        return result.ToString();
+    }
+}
