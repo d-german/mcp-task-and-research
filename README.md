@@ -2,35 +2,52 @@
 
 > 🦐 **A .NET port of [mcp-shrimp-task-manager](https://github.com/cjo4m06/mcp-shrimp-task-manager)** — Intelligent task management for AI-powered development.
 
-A powerful Model Context Protocol (MCP) server built with **.NET 9.0** that provides advanced task management and research capabilities for AI assistants. This server enables structured task planning, dependency management, and guided research workflows — with an optional Blazor Server UI dashboard.
+A powerful Model Context Protocol (MCP) server that provides advanced task management and research capabilities for AI assistants. This server enables structured task planning, dependency management, and guided research workflows — with an optional Blazor Server UI dashboard.
 
 [![NuGet](https://img.shields.io/nuget/v/Mcp.TaskAndResearch)](https://www.nuget.org/packages/Mcp.TaskAndResearch)
 
 ---
 
-## 🌟 Origin & Motivation
+## 🚀 Quick Start
 
-This project is a **complete port** of the original [mcp-shrimp-task-manager](https://github.com/cjo4m06/mcp-shrimp-task-manager) from Node.js/TypeScript to C#/.NET 9.0.
+### 1. Install
 
-### Why This Port Exists
+```bash
+dotnet tool install -g Mcp.TaskAndResearch
+```
 
-The original Shrimp Task Manager is an excellent concept, but:
+### 2. Configure VS Code
 
-- **⚠️ Maintenance Concerns**: The original repository may have periods of inactivity
-- **🔒 Security**: Node.js dependencies can accumulate vulnerabilities over time
-- **🏢 Enterprise Needs**: Many organizations prefer .NET for its enterprise support, type safety, and performance
-- **🔧 Active Development**: This .NET version is actively maintained and updated
+Create or edit `.vscode/mcp.json` in your project:
 
-### Comparison
+```json
+{
+  "servers": {
+    "task-and-research": {
+      "type": "stdio",
+      "command": "mcp-task-and-research",
+      "env": {
+        "DATA_DIR": "${workspaceFolder}/.mcp-tasks",
+        "TASK_MANAGER_UI": "true",
+        "TASK_MANAGER_UI_AUTO_OPEN": "true"
+      }
+    }
+  }
+}
+```
 
-| Aspect | Original (Node.js) | This Port (.NET) |
-|--------|-------------------|------------------|
-| **Runtime** | Node.js 18+ | .NET 9.0 |
-| **Installation** | `npm install` + clone | `dotnet tool install -g` ✨ |
-| **Type Safety** | TypeScript | C# (stronger) |
-| **Dependencies** | npm ecosystem | NuGet (curated) |
-| **Performance** | Good | Excellent (compiled, AOT-ready) |
-| **UI** | React Task Viewer | Blazor Server Dashboard |
+> 💡 **Important**: Always set `DATA_DIR` to a project-specific path to keep tasks isolated between projects.
+
+### 3. Start Using
+
+1. **Reload VS Code** (Ctrl+Shift+P → "Developer: Reload Window")
+2. **Browser opens automatically** to the Tasks UI
+3. **Use MCP tools** via Copilot/Claude: `plan_task`, `execute_task`, `verify_task`, etc.
+
+**Update to latest version:**
+```bash
+dotnet tool update -g Mcp.TaskAndResearch
+```
 
 ---
 
@@ -180,32 +197,11 @@ You: "plan task: set up CI/CD pipeline"
 
 ---
 
-## 🚀 Installation
+## 🛠️ Advanced Installation Options
 
-### Option 1: Global Tool (Recommended)
+For most users, the Quick Start above is all you need. For advanced scenarios:
 
-Install as a global .NET tool - no cloning required:
-
-```bash
-dotnet tool install -g Mcp.TaskAndResearch
-```
-
-After installation, run `mcp-task-and-research --help` to see setup instructions:
-
-```bash
-mcp-task-and-research --help
-```
-
-Then configure VS Code (see [Configuration](#configuration) below).
-
-**Update:**
-```bash
-dotnet tool update -g Mcp.TaskAndResearch
-```
-
-### Option 2: Clone & Build
-
-For development or customization:
+### Clone & Build (For Development)
 
 ```bash
 git clone https://github.com/d-german/mcp-task-and-research.git
@@ -213,226 +209,46 @@ cd mcp-task-and-research
 dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
 ```
 
-### Option 1: Global Tool (Recommended)
-
-Install as a global .NET tool - no cloning required:
-
-```bash
-dotnet tool install -g Mcp.TaskAndResearch
-```
-
-After installation, run `mcp-task-and-research --help` to see setup instructions:
-
-```bash
-mcp-task-and-research --help
-```
-
-Then configure VS Code (see [Configuration](#configuration) below).
-
-**Update:**
-```bash
-dotnet tool update -g Mcp.TaskAndResearch
-```
-
-### Option 2: Clone & Build
-
-For development or customization:
-
-```bash
-git clone https://github.com/d-german/mcp-task-and-research.git
-cd mcp-task-and-research
-dotnet publish src/Mcp.TaskAndResearch/Mcp.TaskAndResearch.csproj -c Release -o ./publish
-```
+Then configure with the published DLL path instead of the command name.
 
 ---
 
-## Configuration
+## ⚠️ Data Storage & Project Isolation
 
-### Global Tool Configuration
+**TL;DR**: Always set `DATA_DIR` to a project-specific path in your `.vscode/mcp.json` to keep tasks isolated between projects.
 
-After installing globally, add to `.vscode/mcp.json`. A relative `DATA_DIR` (e.g., `.mcp-tasks`) keeps data per project when you start the server from the workspace root; omit `DATA_DIR` to use the user-level default directory (shared across projects).
+### Why This Matters
 
-```json
-{
-  "servers": {
-    "task-and-research": {
-      "type": "stdio",
-      "command": "mcp-task-and-research",
-      "env": {
-        "DATA_DIR": ".mcp-tasks",
-        "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_AUTO_OPEN": "true",
-        "ENABLE_COMPLETION_BEEP": "true"
-      }
-    }
-  }
-}
-```
+Without `DATA_DIR`, all projects share one global task list, which causes:
+- Tasks from different projects mixed together
+- Wrong task execution (agent picks tasks from other projects)
+- Broken dependencies across unrelated projects
 
-### Clone & Build Configuration
+### Recommended Setup
 
-```json
-{
-  "servers": {
-    "task-and-research": {
-      "type": "stdio",
-      "command": "dotnet",
-      "args": [
-        "C:/path/to/mcp-task-and-research/publish/Mcp.TaskAndResearch.dll"
-      ],
-      "env": {
-        "DATA_DIR": "C:/path/to/your-project/.mcp-tasks",
-        "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_AUTO_OPEN": "true"
-      }
-    }
-  }
-}
-```
+Use project-specific paths in each project's `.vscode/mcp.json`:
 
----
-
-## ⚠️ Data Storage: Critical Configuration
-
-### Understanding DATA_DIR
-
-The `DATA_DIR` environment variable controls where your tasks are stored. **This is the most important configuration setting** when working with multiple projects.
-
-| Configuration | Storage Location | Use Case |
-|--------------|------------------|----------|
-| `DATA_DIR` not set | `%LOCALAPPDATA%\mcp-task-and-research` (Windows) or `~/.mcp-task-and-research` (Linux/Mac) | Single project, quick testing |
-| `DATA_DIR` set | Your specified path | **Multi-project work (RECOMMENDED)** |
-
-### 🚨 WARNING: Task Confusion Without Project Isolation
-
-**If you work on multiple projects WITHOUT setting `DATA_DIR`, you WILL encounter problems:**
-
-1. **Agent Sees All Tasks**: The AI agent sees tasks from ALL your projects mixed together
-2. **Wrong Task Execution**: "Execute the login task" could match a task from a different project
-3. **Broken Dependencies**: Task dependencies may reference tasks from other projects
-4. **Invalid File References**: Related files point to paths in other projects
-5. **Context Pollution**: Agent's understanding gets polluted with irrelevant tasks
-
-**Example of what goes wrong:**
-
-```
-You're working on Project-A (e-commerce site)
-But your task list contains:
-  - "Implement login page" (from Project-B, a blog)
-  - "Add shopping cart" (from Project-A) ← This is yours
-  - "Fix navigation menu" (from Project-C, a dashboard)
-
-Agent: "I see the login task depends on the navigation menu task..."
-       (Wrong! These are from different projects!)
-```
-
-### ✅ Recommended: Project-Isolated Configuration
-
-**Always set `DATA_DIR` to a project-specific location:**
-
-```json
-{
-  "servers": {
-    "task-and-research": {
-      "type": "stdio",
-      "command": "mcp-task-and-research",
-      "env": {
-        "DATA_DIR": "C:/projects/my-ecommerce-app/.mcp-tasks",
-        "TASK_MANAGER_UI": "true"
-      }
-    }
-  }
-}
-```
-
-### When Global Storage IS Appropriate
-
-The default global location is fine when:
-- ✅ You only work on one project at a time
-- ✅ You want to share tasks across all workspaces intentionally
-- ✅ You're just experimenting or testing
-
-### Best Practices
-
-1. **One DATA_DIR per project** - Keep tasks isolated
-2. **Use `.mcp-tasks` folder convention** - Easy to find and manage
-3. **Add to `.gitignore`** - For private tasks: `.mcp-tasks/`
-4. **Or commit it** - For shared team tasks (optional)
-5. **Use absolute paths** - Avoids working directory issues
-
-### Multi-Project Setup Example
-
-For developers working on multiple projects, configure each project's `.vscode/mcp.json`:
-
-**Project A (E-commerce):**
 ```json
 {
   "env": {
-    "DATA_DIR": "C:\\projects\\ecommerce\\.mcp-tasks"
+    "DATA_DIR": "${workspaceFolder}/.mcp-tasks"
   }
 }
 ```
 
-**Project B (Blog):**
+Or use absolute paths:
 ```json
 {
   "env": {
-    "DATA_DIR": "C:\\projects\\blog\\.mcp-tasks"
+    "DATA_DIR": "C:/projects/my-project/.mcp-tasks"
   }
 }
 ```
 
-**Project C (Dashboard):**
-```json
-{
-  "env": {
-    "DATA_DIR": "C:\\projects\\dashboard\\.mcp-tasks"
-  }
-}
-```
-
-Now each project has completely isolated task management!
-
----
-
-## Quick Start (5 minutes)
-
-### Step 1: Install
-
-**Global Tool (easiest):**
-```bash
-dotnet tool install -g Mcp.TaskAndResearch
-```
-
-**Or clone & build** (see [Installation](#installation) above).
-
-### Step 2: Configure
-
-Add to your project's `.vscode/mcp.json` (create if it doesn't exist):
-
-```json
-{
-  "servers": {
-    "task-and-research": {
-      "type": "stdio",
-      "command": "mcp-task-and-research",
-      "env": {
-        "DATA_DIR": "C:/your/project/path/.mcp-tasks",
-        "TASK_MANAGER_UI": "true",
-        "TASK_MANAGER_UI_AUTO_OPEN": "true"
-      }
-    }
-  }
-}
-```
-
-> ⚠️ **Important**: Always set `DATA_DIR` to your project folder. See [Data Storage](#️-data-storage-critical-configuration) for why this matters.
-
-### Step 3: Start Using
-
-1. **Reload VS Code** or use "Developer: Reload Window" (`Ctrl+Shift+P`)
-2. The **browser opens automatically** to the Tasks UI (if `TASK_MANAGER_UI_AUTO_OPEN=true`)
-3. **Use MCP tools** via Copilot/Claude: `plan_task`, `execute_task`, `verify_task`, etc.
+**Best practices:**
+- Use `.mcp-tasks` folder convention
+- Add to `.gitignore` for private tasks (or commit for team sharing)
+- One `DATA_DIR` per project ensures complete isolation
 
 ---
 
@@ -518,7 +334,7 @@ src/Mcp.TaskAndResearch/
 ## Development
 
 ### Prerequisites
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- [.NET SDK](https://dotnet.microsoft.com/download/dotnet)
 - VS Code with GitHub Copilot or Claude extension
 
 ### Build from Source
