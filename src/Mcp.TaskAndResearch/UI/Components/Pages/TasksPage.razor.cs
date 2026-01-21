@@ -94,7 +94,7 @@ private Func<TaskItem, bool> _quickFilter => task =>
 
             var options = new DialogOptions
             {
-                MaxWidth = MaxWidth.Medium,
+                MaxWidth = MaxWidth.ExtraLarge,
                 FullWidth = true,
                 CloseOnEscapeKey = true
             };

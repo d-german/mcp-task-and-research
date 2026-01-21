@@ -1,134 +1,205 @@
 @using Mcp.TaskAndResearch.Data
 
-<MudDialog>
+<MudDialog Style="max-height: 90vh;">
     <TitleContent>
-        <MudText Typo="Typo.h6">
-            <MudIcon Icon="@Icons.Material.Filled.Task" Class="mr-2" />
-            @(_isEditMode ? "Edit Task" : "Task Details")
-        </MudText>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.Task" />
+            <MudText Typo="Typo.h6">
+                @(_isEditMode ? "Edit Task" : "Task Details")
+            </MudText>
+            <MudChip T="string" 
+                     Size="Size.Small" 
+                     Color="@GetStatusColor(_model.Status)"
+                     Variant="Variant.Filled">
+                @_model.Status
+            </MudChip>
+            <MudSpacer />
+            <MudText Typo="Typo.caption" Color="Color.Secondary">ID: @Task.Id</MudText>
+        </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudForm @ref="_form" @bind-IsValid="_isValid">
-            <MudGrid>
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.Name"
-                                  Label="Name"
-                                  Required="true"
-                                  RequiredError="Name is required"
-                                  Variant="Variant.Outlined"
-                                  ReadOnly="@(!_isEditMode)" />
-                </MudItem>
-                
-                <MudItem xs="12">
-                    <MudSelect @bind-Value="_model.Status"
-                               Label="Status"
-                               Variant="Variant.Outlined"
-                               Disabled="@(!_isEditMode)">
-                        @foreach (var status in Enum.GetValues<Data.TaskStatus>())
+        <MudContainer MaxWidth="MaxWidth.Large" Style="max-height: 70vh; overflow-y: auto; padding: 0;">
+            @if (_isEditMode)
+            {
+                @* Edit Mode - Use Form Fields *@
+                <MudForm @ref="_form" @bind-IsValid="_isValid">
+                    <MudStack Spacing="3">
+                        <MudTextField @bind-Value="_model.Name"
+                                      Label="Name"
+                                      Required="true"
+                                      RequiredError="Name is required"
+                                      Variant="Variant.Outlined" />
+                        
+                        <MudSelect @bind-Value="_model.Status"
+                                   Label="Status"
+                                   Variant="Variant.Outlined">
+                            @foreach (var status in Enum.GetValues<Data.TaskStatus>())
+                            {
+                                <MudSelectItem Value="@status">@status</MudSelectItem>
+                            }
+                        </MudSelect>
+                        
+                        <MudTextField @bind-Value="_model.Description"
+                                      Label="Description"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      MaxLines="15" />
+                        
+                        <MudTextField @bind-Value="_model.ImplementationGuide"
+                                      Label="Implementation Guide"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      MaxLines="20" />
+                        
+                        <MudTextField @bind-Value="_model.VerificationCriteria"
+                                      Label="Verification Criteria"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      MaxLines="10" />
+                        
+                        <MudTextField @bind-Value="_model.Notes"
+                                      Label="Notes"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      MaxLines="10" />
+                    </MudStack>
+                </MudForm>
+            }
+            else
+            {
+                @* Read-Only Mode - Use Expansion Panels for Better Visibility *@
+                <MudStack Spacing="2">
+                    @* Task Name - Always Prominent *@
+                    <MudPaper Elevation="0" Class="pa-3" Style="background-color: var(--mud-palette-background-grey);">
+                        <MudText Typo="Typo.h5">@Task.Name</MudText>
+                    </MudPaper>
+                    
+                    <MudExpansionPanels MultiExpansion="true" Elevation="1">
+                        @* Description - Expanded by Default *@
+                        <MudExpansionPanel Text="Description" Expanded="true" Icon="@Icons.Material.Filled.Description">
+                            <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.6;">
+                                @(string.IsNullOrWhiteSpace(Task.Description) ? "(No description)" : Task.Description)
+                            </MudText>
+                        </MudExpansionPanel>
+                        
+                        @* Implementation Guide *@
+                        @if (!string.IsNullOrWhiteSpace(Task.ImplementationGuide))
                         {
-                            <MudSelectItem Value="@status">@status</MudSelectItem>
+                            <MudExpansionPanel Text="Implementation Guide" Expanded="true" Icon="@Icons.Material.Filled.Code">
+                                <MudPaper Elevation="0" Class="pa-3" Style="background-color: var(--mud-palette-background); font-family: 'Consolas', 'Courier New', monospace;">
+                                    <MudText Typo="Typo.body2" Style="white-space: pre-wrap; line-height: 1.8;">
+                                        @Task.ImplementationGuide
+                                    </MudText>
+                                </MudPaper>
+                            </MudExpansionPanel>
                         }
-                    </MudSelect>
-                </MudItem>
-                
-<MudItem xs="12">
-                    <MudTextField @bind-Value="_model.Description"
-                                  Label="Description"
-                                  Lines="3"
-                                  Variant="Variant.Outlined"
-                                  ReadOnly="@(!_isEditMode)" />
-                </MudItem>
-                
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.ImplementationGuide"
-                                  Label="Implementation Guide"
-                                  Lines="4"
-                                  Variant="Variant.Outlined"
-                                  ReadOnly="@(!_isEditMode)" />
-                </MudItem>
-                
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.VerificationCriteria"
-                                  Label="Verification Criteria"
-                                  Lines="2"
-                                  Variant="Variant.Outlined"
-                                  ReadOnly="@(!_isEditMode)" />
-                </MudItem>
-                
-                <MudItem xs="12">
-                    <MudTextField @bind-Value="_model.Notes"
-                                  Label="Notes"
-                                  Lines="3"
-                                  Variant="Variant.Outlined"
-                                  ReadOnly="@(!_isEditMode)" />
-                </MudItem>
-                
-                @if (Task.Dependencies.Length > 0)
-                {
-                    <MudItem xs="12">
-                        <MudText Typo="Typo.subtitle2" Class="mb-2">Dependencies</MudText>
-                        <MudChipSet T="string">
-                            @foreach (var dep in Task.Dependencies)
-                            {
-                                <MudChip T="string" 
-                                         Color="Color.Info" 
-                                         Size="Size.Small"
-                                         OnClick="@(() => OnDependencyClickedAsync(dep.TaskId))">
-                                    @dep.TaskId
-                                </MudChip>
-                            }
-                        </MudChipSet>
-                    </MudItem>
-                }
-                
-                @if (Task.RelatedFiles.Length > 0)
-                {
-                    <MudItem xs="12">
-                        <MudText Typo="Typo.subtitle2" Class="mb-2">Related Files</MudText>
-                        <MudList T="RelatedFile" Dense="true">
-                            @foreach (var file in Task.RelatedFiles)
-                            {
-                                <MudListItem Icon="@Icons.Material.Filled.InsertDriveFile">
-                                    <MudText Typo="Typo.body2">@file.Path</MudText>
-                                    <MudText Typo="Typo.caption" Color="Color.Secondary">@file.Type</MudText>
-                                </MudListItem>
-                            }
-                        </MudList>
-                    </MudItem>
-                }
-                
-                <MudItem xs="12">
+                        
+                        @* Verification Criteria *@
+                        @if (!string.IsNullOrWhiteSpace(Task.VerificationCriteria))
+                        {
+                            <MudExpansionPanel Text="Verification Criteria" Expanded="true" Icon="@Icons.Material.Filled.Checklist">
+                                <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.6;">
+                                    @Task.VerificationCriteria
+                                </MudText>
+                            </MudExpansionPanel>
+                        }
+                        
+                        @* Notes *@
+                        @if (!string.IsNullOrWhiteSpace(Task.Notes))
+                        {
+                            <MudExpansionPanel Text="Notes" Expanded="false" Icon="@Icons.Material.Filled.StickyNote2">
+                                <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.6;">
+                                    @Task.Notes
+                                </MudText>
+                            </MudExpansionPanel>
+                        }
+                        
+                        @* Dependencies *@
+                        @if (Task.Dependencies.Length > 0)
+                        {
+                            <MudExpansionPanel Text="@($"Dependencies ({Task.Dependencies.Length})")" Expanded="false" Icon="@Icons.Material.Filled.AccountTree">
+                                <MudChipSet T="string">
+                                    @foreach (var dep in Task.Dependencies)
+                                    {
+                                        <MudChip T="string" 
+                                                 Color="Color.Info" 
+                                                 Size="Size.Medium"
+                                                 OnClick="@(() => OnDependencyClickedAsync(dep.TaskId))">
+                                            @dep.TaskId
+                                        </MudChip>
+                                    }
+                                </MudChipSet>
+                            </MudExpansionPanel>
+                        }
+                        
+                        @* Related Files *@
+                        @if (Task.RelatedFiles.Length > 0)
+                        {
+                            <MudExpansionPanel Text="@($"Related Files ({Task.RelatedFiles.Length})")" Expanded="false" Icon="@Icons.Material.Filled.Folder">
+                                <MudList T="RelatedFile" Dense="false">
+                                    @foreach (var file in Task.RelatedFiles)
+                                    {
+                                        <MudListItem Icon="@Icons.Material.Filled.InsertDriveFile">
+                                            <MudStack Spacing="0">
+                                                <MudText Typo="Typo.body1">@file.Path</MudText>
+                                                <MudText Typo="Typo.caption" Color="Color.Secondary">@file.Type</MudText>
+                                            </MudStack>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+                            </MudExpansionPanel>
+                        }
+                    </MudExpansionPanels>
+                    
+                    @* Metadata Footer *@
                     <MudDivider Class="my-2" />
-                    <MudGrid>
+                    <MudGrid Spacing="2">
                         <MudItem xs="12" sm="4">
-                            <MudText Typo="Typo.caption">ID: @Task.Id</MudText>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Created</MudText>
+                                <MudText Typo="Typo.body2">@Task.CreatedAt.ToString("g")</MudText>
+                            </MudStack>
                         </MudItem>
                         <MudItem xs="12" sm="4">
-                            <MudText Typo="Typo.caption">Created: @Task.CreatedAt.ToString("g")</MudText>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Updated</MudText>
+                                <MudText Typo="Typo.body2">@Task.UpdatedAt.ToString("g")</MudText>
+                            </MudStack>
                         </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudText Typo="Typo.caption">Updated: @Task.UpdatedAt.ToString("g")</MudText>
-                        </MudItem>
+                        @if (Task.CompletedAt.HasValue)
+                        {
+                            <MudItem xs="12" sm="4">
+                                <MudStack Spacing="0">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Completed</MudText>
+                                    <MudText Typo="Typo.body2">@Task.CompletedAt.Value.ToString("g")</MudText>
+                                </MudStack>
+                            </MudItem>
+                        }
                     </MudGrid>
-                </MudItem>
-            </MudGrid>
-        </MudForm>
+                </MudStack>
+            }
+        </MudContainer>
     </DialogContent>
     <DialogActions>
         @if (_isEditMode)
         {
-            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton OnClick="Cancel" Variant="Variant.Text">Cancel</MudButton>
             <MudButton Color="Color.Primary" 
                        Variant="Variant.Filled" 
                        OnClick="Save"
                        Disabled="@(!_isValid)">
-                Save
+                Save Changes
             </MudButton>
         }
         else
         {
-            <MudButton OnClick="EnableEdit" Color="Color.Primary">Edit</MudButton>
-            <MudButton OnClick="Close">Close</MudButton>
+            <MudButton OnClick="EnableEdit" 
+                       Color="Color.Primary" 
+                       Variant="Variant.Text"
+                       StartIcon="@Icons.Material.Filled.Edit">
+                Edit
+            </MudButton>
+            <MudButton OnClick="Close" Variant="Variant.Filled">Close</MudButton>
         }
     </DialogActions>
 </MudDialog>

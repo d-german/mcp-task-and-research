@@ -119,9 +119,18 @@ public partial class TaskDetailDialog : ComponentBase
             await DialogService.ShowAsync<TaskDetailDialog>(
                 $"Task: {task.Name}",
                 parameters,
-                new DialogOptions { MaxWidth = MaxWidth.Medium });
+                new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true });
         });
     }
+
+    private static Color GetStatusColor(Data.TaskStatus status) => status switch
+    {
+        Data.TaskStatus.Pending => Color.Default,
+        Data.TaskStatus.InProgress => Color.Info,
+        Data.TaskStatus.Completed => Color.Success,
+        Data.TaskStatus.Blocked => Color.Warning,
+        _ => Color.Default
+    };
 
     private sealed class EditTaskModel
     {

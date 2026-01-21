@@ -315,7 +315,7 @@ public partial class HistoryView : ComponentBase, IDisposable
             await DialogService.ShowAsync<Dialogs.TaskDetailDialog>(
                 $"Task: {task.Name}",
                 parameters,
-                new DialogOptions { MaxWidth = MaxWidth.Medium });
+                new DialogOptions { MaxWidth = MaxWidth.ExtraLarge, FullWidth = true });
         });
     }
 
