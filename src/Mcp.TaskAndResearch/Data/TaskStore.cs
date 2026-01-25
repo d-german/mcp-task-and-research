@@ -54,92 +54,136 @@ internal sealed class TaskStore : ITaskReader
 
     public async Task<TaskItem> CreateAsync(TaskCreateRequest request)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
-        var now = _timeProvider.GetLocalNow();
+        var paths = _pathProvider.GetPaths();
+        EnsureDirectory(paths.DataDirectory);
 
-        var task = new TaskItem
+        await FileLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            Id = Guid.NewGuid().ToString(),
-            Name = request.Name,
-            Description = request.Description,
-            Notes = request.Notes,
-            Status = TaskStatus.Pending,
-            Dependencies = ToDependencies(request.Dependencies),
-            CreatedAt = now,
-            UpdatedAt = now,
-            RelatedFiles = request.RelatedFiles,
-            AnalysisResult = request.AnalysisResult,
-            Agent = request.Agent,
-            ImplementationGuide = request.ImplementationGuide,
-            VerificationCriteria = request.VerificationCriteria
-        };
+            var document = await ReadDocumentCoreAsync(paths.TasksFilePath).ConfigureAwait(false);
+            var now = _timeProvider.GetLocalNow();
 
-        var updatedDocument = document with
+            var task = new TaskItem
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = request.Name,
+                Description = request.Description,
+                Notes = request.Notes,
+                Status = TaskStatus.Pending,
+                Dependencies = ToDependencies(request.Dependencies),
+                CreatedAt = now,
+                UpdatedAt = now,
+                RelatedFiles = request.RelatedFiles,
+                AnalysisResult = request.AnalysisResult,
+                Agent = request.Agent,
+                ImplementationGuide = request.ImplementationGuide,
+                VerificationCriteria = request.VerificationCriteria
+            };
+
+            var updatedDocument = document with
+            {
+                Tasks = document.Tasks.Add(task)
+            };
+
+            await WriteWithRetryAsync(paths.TasksFilePath, updatedDocument).ConfigureAwait(false);
+            OnTaskChanged?.Invoke(TaskChangeEventArgs.Created(task));
+            return task;
+        }
+        finally
         {
-            Tasks = document.Tasks.Add(task)
-        };
-
-        await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
-        OnTaskChanged?.Invoke(TaskChangeEventArgs.Created(task));
-        return task;
+            FileLock.Release();
+        }
     }
 
     public async Task<TaskItem?> UpdateAsync(string taskId, TaskUpdateRequest request)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
-        var index = FindTaskIndex(document.Tasks, taskId);
-        if (index < 0)
+        var paths = _pathProvider.GetPaths();
+        EnsureDirectory(paths.DataDirectory);
+
+        await FileLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            return null;
+            var document = await ReadDocumentCoreAsync(paths.TasksFilePath).ConfigureAwait(false);
+            var index = FindTaskIndex(document.Tasks, taskId);
+            if (index < 0)
+            {
+                return null;
+            }
+
+            var now = _timeProvider.GetLocalNow();
+            var updated = ApplyUpdates(document.Tasks[index], request, now);
+            var updatedDocument = document with
+            {
+                Tasks = document.Tasks.SetItem(index, updated)
+            };
+
+            await WriteWithRetryAsync(paths.TasksFilePath, updatedDocument).ConfigureAwait(false);
+            OnTaskChanged?.Invoke(TaskChangeEventArgs.Updated(updated));
+            return updated;
         }
-
-        var now = _timeProvider.GetLocalNow();
-        var updated = ApplyUpdates(document.Tasks[index], request, now);
-        var updatedDocument = document with
+        finally
         {
-            Tasks = document.Tasks.SetItem(index, updated)
-        };
-
-        await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
-        OnTaskChanged?.Invoke(TaskChangeEventArgs.Updated(updated));
-        return updated;
+            FileLock.Release();
+        }
     }
 
     public async Task<bool> DeleteAsync(string taskId)
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
-        var index = FindTaskIndex(document.Tasks, taskId);
-        if (index < 0)
+        var paths = _pathProvider.GetPaths();
+        EnsureDirectory(paths.DataDirectory);
+
+        await FileLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            return false;
+            var document = await ReadDocumentCoreAsync(paths.TasksFilePath).ConfigureAwait(false);
+            var index = FindTaskIndex(document.Tasks, taskId);
+            if (index < 0)
+            {
+                return false;
+            }
+
+            var deletedTask = document.Tasks[index];
+            var updatedDocument = document with
+            {
+                Tasks = document.Tasks.RemoveAt(index)
+            };
+
+            await WriteWithRetryAsync(paths.TasksFilePath, updatedDocument).ConfigureAwait(false);
+            OnTaskChanged?.Invoke(TaskChangeEventArgs.Deleted(deletedTask));
+            return true;
         }
-
-        var deletedTask = document.Tasks[index];
-        var updatedDocument = document with
+        finally
         {
-            Tasks = document.Tasks.RemoveAt(index)
-        };
-
-        await WriteDocumentAsync(updatedDocument).ConfigureAwait(false);
-        OnTaskChanged?.Invoke(TaskChangeEventArgs.Deleted(deletedTask));
-        return true;
+            FileLock.Release();
+        }
     }
 
     public async Task<ClearAllResult> ClearAllAsync()
     {
-        var document = await ReadDocumentAsync().ConfigureAwait(false);
-        if (document.Tasks.IsDefaultOrEmpty)
+        var paths = _pathProvider.GetPaths();
+        EnsureDirectory(paths.DataDirectory);
+
+        await FileLock.WaitAsync().ConfigureAwait(false);
+        try
         {
-            return ClearAllResult.Empty;
+            var document = await ReadDocumentCoreAsync(paths.TasksFilePath).ConfigureAwait(false);
+            if (document.Tasks.IsDefaultOrEmpty)
+            {
+                return ClearAllResult.Empty;
+            }
+
+            var completedTasks = document.Tasks.Where(task => task.Status == TaskStatus.Completed).ToImmutableArray();
+            var backupFile = await _memoryStore.WriteSnapshotAsync(completedTasks).ConfigureAwait(false);
+
+            await WriteWithRetryAsync(paths.TasksFilePath, TaskDocument.Empty).ConfigureAwait(false);
+            OnTaskChanged?.Invoke(TaskChangeEventArgs.Cleared());
+
+            return new ClearAllResult(true, "Tasks cleared.", backupFile);
         }
-
-        var completedTasks = document.Tasks.Where(task => task.Status == TaskStatus.Completed).ToImmutableArray();
-        var backupFile = await _memoryStore.WriteSnapshotAsync(completedTasks).ConfigureAwait(false);
-
-        await WriteDocumentAsync(TaskDocument.Empty).ConfigureAwait(false);
-        OnTaskChanged?.Invoke(TaskChangeEventArgs.Cleared());
-
-        return new ClearAllResult(true, "Tasks cleared.", backupFile);
+        finally
+        {
+            FileLock.Release();
+        }
     }
 
     private async Task<TaskDocument> ReadDocumentAsync()
@@ -150,12 +194,7 @@ internal sealed class TaskStore : ITaskReader
         await FileLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            if (!File.Exists(paths.TasksFilePath))
-            {
-                await WriteDocumentCoreAsync(paths.TasksFilePath, TaskDocument.Empty).ConfigureAwait(false);
-            }
-
-            return await ReadWithRetryAsync(paths.TasksFilePath).ConfigureAwait(false);
+            return await ReadDocumentCoreAsync(paths.TasksFilePath).ConfigureAwait(false);
         }
         finally
         {
@@ -177,6 +216,21 @@ internal sealed class TaskStore : ITaskReader
         {
             FileLock.Release();
         }
+    }
+
+
+    /// <summary>
+    /// Reads the document without acquiring the lock.
+    /// Caller must already hold FileLock.
+    /// </summary>
+    private async Task<TaskDocument> ReadDocumentCoreAsync(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            await WriteDocumentCoreAsync(filePath, TaskDocument.Empty).ConfigureAwait(false);
+        }
+
+        return await ReadWithRetryAsync(filePath).ConfigureAwait(false);
     }
 
     /// <summary>
