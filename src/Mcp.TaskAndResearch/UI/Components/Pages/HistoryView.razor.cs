@@ -11,7 +11,7 @@ public partial class HistoryView : ComponentBase, IDisposable
     private ITaskReader TaskReader { get; set; } = default!;
 
     [Inject]
-    private MemoryStore MemoryStore { get; set; } = default!;
+    private IMemoryRepository MemoryStore { get; set; } = default!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;

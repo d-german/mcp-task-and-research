@@ -18,10 +18,10 @@ internal sealed record PaginationInfo
 
 internal sealed class TaskSearchService
 {
-    private readonly TaskStore _taskStore;
-    private readonly MemoryStore _memoryStore;
+    private readonly ITaskRepository _taskStore;
+    private readonly IMemoryRepository _memoryStore;
 
-    public TaskSearchService(TaskStore taskStore, MemoryStore memoryStore)
+    public TaskSearchService(ITaskRepository taskStore, IMemoryRepository memoryStore)
     {
         _taskStore = taskStore;
         _memoryStore = memoryStore;

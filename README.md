@@ -300,8 +300,8 @@ This means you never lose visibility into past work - cleared tasks remain viewa
               ┌──────────────────┼──────────────────┐
               │                  │                  │
      ┌────────▼────────┐ ┌──────▼───────┐ ┌───────▼───────┐
-     │   TaskStore     │ │ MemoryStore  │ │  RulesStore   │
-     │   (tasks)       │ │ (context)    │ │  (conventions)│
+     │ TaskRepository  │ │MemoryRepository│ │  RulesStore   │
+     │ (LiteDB/ACID)   │ │ (LiteDB)     │ │  (conventions)│
      └────────┬────────┘ └──────────────┘ └───────────────┘
               │
      ┌────────▼────────┐

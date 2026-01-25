@@ -190,9 +190,9 @@ internal sealed class PlanTaskPromptBuilder
                $"{dependencies}";
     }
 
-    private static string FormatDependencies(ImmutableArray<TaskDependency> dependencies)
+    private static string FormatDependencies(List<TaskDependency> dependencies)
     {
-        if (dependencies.IsDefaultOrEmpty)
+        if (dependencies.Count == 0)
         {
             return string.Empty;
         }
@@ -281,15 +281,15 @@ internal sealed class SplitTasksPromptBuilder
     }
 
     private static string FormatDependencies(
-        ImmutableArray<TaskDependency> dependencies,
+        List<TaskDependency> dependencies,
         ImmutableArray<TaskItem> allTasks)
     {
-        if (dependencies.IsDefaultOrEmpty)
+        if (dependencies.Count == 0)
         {
             return "no dependencies";
         }
 
-        var items = new List<string>(dependencies.Length);
+        var items = new List<string>(dependencies.Count);
         foreach (var dependency in dependencies)
         {
             var name = allTasks.FirstOrDefault(task => task.Id == dependency.TaskId)?.Name;
@@ -656,9 +656,9 @@ internal sealed class ListTasksPromptBuilder
             : string.Empty;
     }
 
-    private static string FormatDependencies(ImmutableArray<TaskDependency> dependencies)
+    private static string FormatDependencies(List<TaskDependency> dependencies)
     {
-        if (dependencies.IsDefaultOrEmpty)
+        if (dependencies.Count == 0)
         {
             return "none";
         }
@@ -820,7 +820,7 @@ internal sealed class GetTaskDetailPromptBuilder
 
     private string BuildDependenciesPrompt(TaskItem task)
     {
-        if (task.Dependencies.IsDefaultOrEmpty)
+        if (task.Dependencies.Count == 0)
         {
             return string.Empty;
         }
@@ -863,7 +863,7 @@ internal sealed class GetTaskDetailPromptBuilder
 
     private string BuildRelatedFilesPrompt(TaskItem task)
     {
-        if (task.RelatedFiles.IsDefaultOrEmpty)
+        if (task.RelatedFiles.Count == 0)
         {
             return string.Empty;
         }
@@ -953,7 +953,7 @@ internal sealed class UpdateTaskPromptBuilder
     private string BuildSuccessDetails(TaskItem updatedTask)
     {
         var template = _templateLoader.LoadTemplate("updateTaskContent/success.md");
-        var filesContent = BuildRelatedFilesContent(updatedTask.RelatedFiles);
+        var filesContent = BuildRelatedFilesContent(updatedTask.RelatedFiles, _templateLoader);
         var taskNotes = BuildNotes(updatedTask.Notes);
         var description = Truncate(updatedTask.Description, 100);
 
@@ -968,14 +968,14 @@ internal sealed class UpdateTaskPromptBuilder
         });
     }
 
-    private string BuildRelatedFilesContent(ImmutableArray<RelatedFile> relatedFiles)
+    private static string BuildRelatedFilesContent(List<RelatedFile> relatedFiles, PromptTemplateLoader templateLoader)
     {
-        if (relatedFiles.IsDefaultOrEmpty)
+        if (relatedFiles.Count == 0)
         {
             return string.Empty;
         }
 
-        var template = _templateLoader.LoadTemplate("updateTaskContent/fileDetails.md");
+        var template = templateLoader.LoadTemplate("updateTaskContent/fileDetails.md");
         var grouped = relatedFiles.GroupBy(file => file.Type);
         var content = string.Empty;
         foreach (var group in grouped)

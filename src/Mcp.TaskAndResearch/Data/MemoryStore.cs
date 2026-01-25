@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Mcp.TaskAndResearch.Data;
 
-internal sealed class MemoryStore
+internal sealed class MemoryStore : IMemoryRepository
 {
     private readonly DataPathProvider _pathProvider;
     private readonly JsonSerializerOptions _jsonOptions;

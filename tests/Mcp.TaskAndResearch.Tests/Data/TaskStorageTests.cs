@@ -108,7 +108,7 @@ public sealed class TaskStorageTests
             Name = name,
             Description = "Snapshot task",
             Status = status,
-            Dependencies = ImmutableArray<TaskDependency>.Empty,
+            Dependencies = [],
             CreatedAt = now,
             UpdatedAt = now,
             CompletedAt = status == TaskStatus.Completed ? now : null

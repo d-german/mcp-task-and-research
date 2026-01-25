@@ -34,7 +34,7 @@ internal static class TaskTools
     [Description("Plan tasks and construct a structured task list.")]
     public static async Task<string> PlanTask(
         PlanTaskPromptBuilder promptBuilder,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         DataPathProvider pathProvider,
         [Description("Full task description including goal and expected outcome.")] string description,
         [Description("Specific technical requirements or constraints.")] string? requirements = null,
@@ -85,7 +85,7 @@ internal static class TaskTools
     [Description("List tasks by status.")]
     public static async Task<string> ListTasks(
         ListTasksPromptBuilder promptBuilder,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         [Description("Status filter: all, pending, in_progress, completed.")] string status = "all")
     {
         var tasks = await taskStore.GetAllAsync().ConfigureAwait(false);
@@ -120,7 +120,7 @@ internal static class TaskTools
     [Description("Retrieve full details for a specific task.")]
     public static async Task<string> GetTaskDetail(
         GetTaskDetailPromptBuilder promptBuilder,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         TaskSearchService searchService,
         [Description("Task ID to retrieve.")] string taskId)
     {
@@ -146,7 +146,7 @@ internal static class TaskTools
     public static async Task<string> ExecuteTask(
         ExecuteTaskPromptBuilder promptBuilder,
         TaskWorkflowService workflowService,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         [Description("Task ID to execute.")] string taskId)
     {
         var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
@@ -187,7 +187,7 @@ internal static class TaskTools
     public static async Task<string> VerifyTask(
         VerifyTaskPromptBuilder promptBuilder,
         TaskWorkflowService workflowService,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         [Description("Task ID to verify.")] string taskId,
         [Description("Overall score from 0-100.")] int score,
         [Description("Summary of verification findings.")] string summary)
@@ -217,7 +217,7 @@ internal static class TaskTools
     [Description("Delete an incomplete task by ID.")]
     public static async Task<string> DeleteTask(
         DeleteTaskPromptBuilder promptBuilder,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         [Description("Task ID to delete.")] string taskId)
     {
         var task = await taskStore.GetByIdAsync(taskId).ConfigureAwait(false);
@@ -242,7 +242,7 @@ internal static class TaskTools
     [Description("Clear all incomplete tasks after confirmation.")]
     public static async Task<string> ClearAllTasks(
         ClearAllTasksPromptBuilder promptBuilder,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         [Description("Confirmation flag to clear all tasks.")] bool confirm = false)
     {
         if (!confirm)
@@ -264,7 +264,7 @@ internal static class TaskTools
     [Description("Update task details, dependencies, or related files.")]
     public static async Task<string> UpdateTask(
         UpdateTaskPromptBuilder promptBuilder,
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         [Description("Task ID to update.")] string taskId,
         [Description("Updated task name.")] string? name = null,
         [Description("Updated task description.")] string? description = null,
@@ -330,8 +330,8 @@ internal static class TaskTools
                  string.IsNullOrWhiteSpace(verificationCriteria));
     }
 
-    private static async Task<ImmutableArray<string>?> ResolveDependenciesAsync(
-        TaskStore taskStore,
+    private static async Task<List<string>?> ResolveDependenciesAsync(
+        ITaskRepository taskStore,
         string[]? dependencies)
     {
         if (dependencies is null)
@@ -341,13 +341,13 @@ internal static class TaskTools
 
         var allTasks = await taskStore.GetAllAsync().ConfigureAwait(false);
         var nameMap = TaskNameMap.Build(allTasks);
-        var idSet = allTasks.Select(task => task.Id).ToImmutableHashSet();
+        var idSet = allTasks.Select(task => task.Id).ToHashSet();
 
         return TaskDependencyResolver.Resolve(dependencies, nameMap, idSet);
     }
 
     private static async Task<PlanTaskSnapshot> LoadPlanSnapshotAsync(
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         bool existingTasksReference)
     {
         if (!existingTasksReference)

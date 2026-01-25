@@ -115,9 +115,9 @@
                         }
                         
                         @* Dependencies *@
-                        @if (Task.Dependencies.Length > 0)
+                        @if (Task.Dependencies.Count > 0)
                         {
-                            <MudExpansionPanel Text="@($"Dependencies ({Task.Dependencies.Length})")" Expanded="false" Icon="@Icons.Material.Filled.AccountTree">
+                            <MudExpansionPanel Text="@($"Dependencies ({Task.Dependencies.Count})")" Expanded="false" Icon="@Icons.Material.Filled.AccountTree">
                                 <MudChipSet T="string">
                                     @foreach (var dep in Task.Dependencies)
                                     {
@@ -133,9 +133,9 @@
                         }
                         
                         @* Related Files *@
-                        @if (Task.RelatedFiles.Length > 0)
+                        @if (Task.RelatedFiles.Count > 0)
                         {
-                            <MudExpansionPanel Text="@($"Related Files ({Task.RelatedFiles.Length})")" Expanded="false" Icon="@Icons.Material.Filled.Folder">
+                            <MudExpansionPanel Text="@($"Related Files ({Task.RelatedFiles.Count})")" Expanded="false" Icon="@Icons.Material.Filled.Folder">
                                 <MudList T="RelatedFile" Dense="false">
                                     @foreach (var file in Task.RelatedFiles)
                                     {

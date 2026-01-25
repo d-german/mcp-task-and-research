@@ -13,7 +13,7 @@ public partial class TaskDetailDialog : ComponentBase
     public TaskItem Task { get; set; } = default!;
 
     [Inject]
-    private TaskStore TaskStore { get; set; } = default!;
+    private ITaskRepository TaskStore { get; set; } = default!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;

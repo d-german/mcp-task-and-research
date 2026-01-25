@@ -21,9 +21,17 @@ internal static class ServerServices
         services.AddSingleton<ConfigReader>();
         services.AddSingleton<PathResolver>();
         services.AddSingleton<DataPathProvider>();
+        
+        // LiteDB storage
+        services.AddSingleton<ILiteDbProvider, LiteDbProvider>();
+        services.AddSingleton<IMemoryRepository, LiteDbMemoryRepository>();
+        services.AddSingleton<ITaskRepository, LiteDbTaskRepository>();
+        services.AddSingleton<ITaskReader>(sp => sp.GetRequiredService<ITaskRepository>());
+        
+        // Legacy stores (kept for migration, will be removed)
         services.AddSingleton<MemoryStore>();
         services.AddSingleton<TaskStore>();
-        services.AddSingleton<ITaskReader>(sp => sp.GetRequiredService<TaskStore>());
+        
         services.AddSingleton<RulesStore>();
         services.AddSingleton<TaskSearchService>();
         services.AddSingleton<PromptTemplateLoader>();

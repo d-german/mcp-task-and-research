@@ -66,7 +66,7 @@
     }
 
     @* Related Files - Conditional *@
-    @if (Task.RelatedFiles.Length > 0)
+    @if (Task.RelatedFiles.Count > 0)
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Related Files</MudText>
@@ -95,7 +95,7 @@
     }
 
     @* Dependencies - Conditional *@
-    @if (Task.Dependencies.Length > 0)
+    @if (Task.Dependencies.Count > 0)
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Dependencies</MudText>

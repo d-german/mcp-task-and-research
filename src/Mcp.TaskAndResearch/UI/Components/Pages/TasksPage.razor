@@ -70,11 +70,11 @@ OnRefresh="LoadTasksAsync" />
                     </MudTooltip>
                 </CellTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="x => x.Dependencies.Length" Title="Deps" Sortable="true">
+            <PropertyColumn Property="x => x.Dependencies.Count" Title="Deps" Sortable="true">
                 <CellTemplate>
-                    @if (context.Item.Dependencies.Length > 0)
+                    @if (context.Item.Dependencies.Count > 0)
                     {
-                        <MudBadge Content="@context.Item.Dependencies.Length" Color="Color.Info" Overlap="false">
+                        <MudBadge Content="@context.Item.Dependencies.Count" Color="Color.Info" Overlap="false">
                             <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" />
                         </MudBadge>
                     }

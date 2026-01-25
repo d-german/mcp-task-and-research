@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Mcp.TaskAndResearch.Data;
 
-internal sealed class TaskStore : ITaskReader
+internal sealed class TaskStore : ITaskRepository
 {
     private readonly DataPathProvider _pathProvider;
     private readonly MemoryStore _memoryStore;
@@ -356,7 +356,7 @@ internal sealed class TaskStore : ITaskReader
             Description = request.Description ?? existing.Description,
             Notes = request.Notes ?? existing.Notes,
             Status = status,
-            Dependencies = request.Dependencies is null ? existing.Dependencies : ToDependencies(request.Dependencies.Value),
+            Dependencies = request.Dependencies is null ? existing.Dependencies : ToDependencies(request.Dependencies),
             RelatedFiles = request.RelatedFiles ?? existing.RelatedFiles,
             Summary = request.Summary ?? existing.Summary,
             AnalysisResult = request.AnalysisResult ?? existing.AnalysisResult,
@@ -368,23 +368,23 @@ internal sealed class TaskStore : ITaskReader
         };
     }
 
-    private static ImmutableArray<TaskDependency> ToDependencies(ImmutableArray<string> dependencyIds)
+    private static List<TaskDependency> ToDependencies(List<string> dependencyIds)
     {
-        if (dependencyIds.IsDefaultOrEmpty)
+        if (dependencyIds.Count == 0)
         {
-            return ImmutableArray<TaskDependency>.Empty;
+            return [];
         }
 
-        var builder = ImmutableArray.CreateBuilder<TaskDependency>();
+        var result = new List<TaskDependency>();
         foreach (var dependencyId in dependencyIds)
         {
             if (!string.IsNullOrWhiteSpace(dependencyId))
             {
-                builder.Add(new TaskDependency { TaskId = dependencyId });
+                result.Add(new TaskDependency { TaskId = dependencyId });
             }
         }
 
-        return builder.ToImmutable();
+        return result;
     }
 }
 

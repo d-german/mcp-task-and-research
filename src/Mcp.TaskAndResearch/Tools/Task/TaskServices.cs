@@ -136,10 +136,10 @@ internal sealed class TaskUpdatePlanner
 
 internal sealed class TaskBatchService
 {
-    private readonly TaskStore _taskStore;
+    private readonly ITaskRepository _taskStore;
     private readonly TaskUpdatePlanner _planner;
 
-    public TaskBatchService(TaskStore taskStore, TaskUpdatePlanner planner)
+    public TaskBatchService(ITaskRepository taskStore, TaskUpdatePlanner planner)
     {
         _taskStore = taskStore;
         _planner = planner;
@@ -261,7 +261,7 @@ internal sealed class TaskBatchService
             Name = input.Name,
             Description = input.Description,
             Notes = input.Notes,
-            Dependencies = ImmutableArray<string>.Empty,
+            Dependencies = [],
             RelatedFiles = RelatedFileConverter.ToRelatedFiles(input.RelatedFiles),
             AnalysisResult = globalAnalysisResult,
             Agent = input.Agent,
@@ -300,17 +300,17 @@ internal sealed class TaskBatchService
 
 internal static class RelatedFileConverter
 {
-    public static ImmutableArray<RelatedFile> ToRelatedFiles(RelatedFileInput[]? inputs)
+    public static List<RelatedFile> ToRelatedFiles(RelatedFileInput[]? inputs)
     {
         if (inputs is null || inputs.Length == 0)
         {
-            return ImmutableArray<RelatedFile>.Empty;
+            return [];
         }
 
-        var builder = ImmutableArray.CreateBuilder<RelatedFile>();
+        var result = new List<RelatedFile>();
         foreach (var input in inputs)
         {
-            builder.Add(new RelatedFile
+            result.Add(new RelatedFile
             {
                 Path = input.Path,
                 Type = RelatedFileTypeParser.Parse(input.Type),
@@ -320,7 +320,7 @@ internal static class RelatedFileConverter
             });
         }
 
-        return builder.ToImmutable();
+        return result;
     }
 }
 
@@ -397,27 +397,27 @@ internal static class TaskDependencyResolver
         "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-    public static ImmutableArray<string> Resolve(
+    public static List<string> Resolve(
         string[]? dependencies,
         IReadOnlyDictionary<string, string> nameMap,
         ISet<string> idSet)
     {
         if (dependencies is null || dependencies.Length == 0)
         {
-            return ImmutableArray<string>.Empty;
+            return [];
         }
 
-        var builder = ImmutableArray.CreateBuilder<string>();
+        var result = new List<string>();
         foreach (var dependency in dependencies)
         {
             var resolved = ResolveDependency(dependency, nameMap, idSet);
             if (!string.IsNullOrWhiteSpace(resolved))
             {
-                builder.Add(resolved);
+                result.Add(resolved);
             }
         }
 
-        return builder.ToImmutable();
+        return result;
     }
 
     private static string? ResolveDependency(
@@ -470,12 +470,12 @@ internal sealed record TaskExecutionCheck(bool CanExecute, ImmutableArray<string
 
 internal sealed class TaskWorkflowService
 {
-    private readonly TaskStore _taskStore;
+    private readonly ITaskRepository _taskStore;
     private readonly TaskComplexityAssessor _complexityAssessor;
     private readonly RelatedFilesSummaryBuilder _summaryBuilder;
 
     public TaskWorkflowService(
-        TaskStore taskStore,
+        ITaskRepository taskStore,
         TaskComplexityAssessor complexityAssessor,
         RelatedFilesSummaryBuilder summaryBuilder)
     {
@@ -496,7 +496,7 @@ internal sealed class TaskWorkflowService
             return new TaskExecutionCheck(false, ImmutableArray<string>.Empty);
         }
 
-        if (task.Dependencies.IsDefaultOrEmpty)
+        if (task.Dependencies.Count == 0)
         {
             return TaskExecutionCheck.Allowed;
         }
@@ -521,7 +521,7 @@ internal sealed class TaskWorkflowService
 
     public async Task<ImmutableArray<TaskItem>> LoadDependencyTasksAsync(TaskItem task)
     {
-        if (task.Dependencies.IsDefaultOrEmpty)
+        if (task.Dependencies.Count == 0)
         {
             return ImmutableArray<TaskItem>.Empty;
         }
@@ -546,7 +546,7 @@ internal sealed class TaskWorkflowService
     }
 
     private static ImmutableArray<string> FindBlockedDependencies(
-        ImmutableArray<TaskDependency> dependencies,
+        List<TaskDependency> dependencies,
         ImmutableArray<TaskItem> allTasks)
     {
         var builder = ImmutableArray.CreateBuilder<string>();
@@ -623,7 +623,7 @@ internal sealed class TaskComplexityAssessor
         return new TaskComplexityMetrics
         {
             DescriptionLength = task.Description.Length,
-            DependenciesCount = task.Dependencies.Length,
+            DependenciesCount = task.Dependencies.Count,
             NotesLength = notesLength,
             HasNotes = notesLength > 0
         };
@@ -832,15 +832,15 @@ internal static class TaskDateFormatter
 
 internal sealed class RelatedFilesSummaryBuilder
 {
-    public string BuildSummary(ImmutableArray<RelatedFile> relatedFiles)
+    public string BuildSummary(List<RelatedFile> relatedFiles)
     {
-        if (relatedFiles.IsDefaultOrEmpty)
+        if (relatedFiles.Count == 0)
         {
             return "The current task has no associated files.";
         }
 
         var builder = new StringBuilder();
-        builder.AppendLine($"## Related Files Summary (total {relatedFiles.Length} files)");
+        builder.AppendLine($"## Related Files Summary (total {relatedFiles.Count} files)");
         builder.AppendLine();
 
         foreach (var file in relatedFiles)

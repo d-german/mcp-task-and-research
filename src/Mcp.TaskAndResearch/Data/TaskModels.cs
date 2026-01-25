@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.Json.Serialization;
+using LiteDB;
 
 namespace Mcp.TaskAndResearch.Data;
 
@@ -37,17 +38,18 @@ public sealed record RelatedFile
 
 public sealed record TaskItem
 {
+    [BsonId]
     public required string Id { get; init; }
     public required string Name { get; init; }
     public required string Description { get; init; }
     public string? Notes { get; init; }
     public required TaskStatus Status { get; init; }
-    public ImmutableArray<TaskDependency> Dependencies { get; init; } = ImmutableArray<TaskDependency>.Empty;
+    public List<TaskDependency> Dependencies { get; init; } = [];
     public required DateTimeOffset CreatedAt { get; init; }
     public required DateTimeOffset UpdatedAt { get; init; }
     public DateTimeOffset? CompletedAt { get; init; }
     public string? Summary { get; init; }
-    public ImmutableArray<RelatedFile> RelatedFiles { get; init; } = ImmutableArray<RelatedFile>.Empty;
+    public List<RelatedFile> RelatedFiles { get; init; } = [];
     public string? AnalysisResult { get; init; }
     public string? Agent { get; init; }
     public string? ImplementationGuide { get; init; }
