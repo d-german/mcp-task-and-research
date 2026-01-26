@@ -101,6 +101,50 @@
             </MudStack>
         </MudPaper>
     </MudItem>
+    
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h6" Class="mb-4">
+                <MudIcon Icon="@Icons.Material.Filled.SyncAlt" Class="mr-2" />
+                Data Migration
+            </MudText>
+            
+            <MudText Typo="Typo.body2" Class="mb-4" Color="Color.Secondary">
+                Import/export tasks between JSON files and database
+            </MudText>
+            
+            <MudStack Row="true" Spacing="4">
+                <MudButton Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.Upload"
+                           OnClick="ImportLegacyTasks"
+                           Disabled="@_isImporting">
+                    @if (_isImporting)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <span class="ml-2">Importing...</span>
+                    }
+                    else
+                    {
+                        <span>Import from JSON</span>
+                    }
+                </MudButton>
+                <MudButton Variant="Variant.Outlined"
+                           StartIcon="@Icons.Material.Filled.Download"
+                           OnClick="ExportTasksToJson"
+                           Disabled="@_isExporting">
+                    @if (_isExporting)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        <span class="ml-2">Exporting...</span>
+                    }
+                    else
+                    {
+                        <span>Export to JSON</span>
+                    }
+                </MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
 </MudGrid>
 
 <MudStack Row="true" Justify="Justify.FlexEnd" Class="mt-4">

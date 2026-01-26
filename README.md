@@ -99,6 +99,32 @@ MCP Task and Research Server transforms how AI agents approach software developm
 - **Automatic Backups**: Completed tasks are written to timestamped JSON under `DATA_DIR/memory` before a clear; pending tasks are dropped during clear
 - **Per-Project Isolation**: Set `DATA_DIR` to a project-scoped path (e.g., `.mcp-tasks`) and launch from the workspace root; without `DATA_DIR`, data is stored in the user-level default directory and shared across projects
 
+### 🔄 Data Migration
+
+Seamlessly migrate between JSON and LiteDB storage formats:
+
+- **Import from JSON**: Import tasks and history from legacy `tasks.json` and `memory/*.json` files into the LiteDB database
+- **Export to JSON**: Export current database tasks back to JSON format for backup, sharing, or compatibility
+- **Duplicate Protection**: Import automatically skips duplicate task IDs
+- **Two Ways to Migrate**:
+  - **MCP Tools**: Use `import_legacy_tasks` and `export_tasks_to_json` tools via AI assistants
+  - **UI**: Click "Import from JSON" or "Export to JSON" buttons in Settings → Data Migration
+
+**MCP Tool Usage:**
+```
+You: "use import_legacy_tasks to migrate my old task data"
+# Imports from DATA_DIR/tasks.json and DATA_DIR/memory/*.json
+
+You: "use export_tasks_to_json to backup my tasks"
+# Exports to DATA_DIR/tasks.json and DATA_DIR/memory/
+```
+
+**Migration Scenarios:**
+- **Upgrading from v1.x**: Import legacy JSON files to preserve history
+- **Backup Before Changes**: Export to JSON before major operations
+- **Team Sharing**: Export tasks, share JSON files, team imports
+- **Cross-Environment**: Export from one machine, import on another
+
 ### 🖥️ Blazor UI Dashboard
 
 When `TASK_MANAGER_UI=true`:
@@ -193,7 +219,9 @@ You: "plan task: set up CI/CD pipeline"
 |------|-------------|
 | `init_project_rules` | Initialize project coding standards |
 | `get_server_info` | Returns basic server metadata |
-| `play_beep` | Play an audible beep notification (Windows only)
+| `play_beep` | Play an audible beep notification (Windows only) |
+| `import_legacy_tasks` | Import tasks from legacy JSON files into database |
+| `export_tasks_to_json` | Export database tasks to JSON format |
 
 ---
 

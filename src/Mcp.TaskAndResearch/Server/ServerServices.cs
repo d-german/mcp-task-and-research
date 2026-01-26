@@ -32,6 +32,9 @@ internal static class ServerServices
         services.AddSingleton<MemoryStore>();
         services.AddSingleton<TaskStore>();
         
+        // Migration service
+        services.AddSingleton<IMigrationService, MigrationService>();
+        
         services.AddSingleton<RulesStore>();
         services.AddSingleton<TaskSearchService>();
         services.AddSingleton<PromptTemplateLoader>();

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using System.Text.Json;
+using Mcp.TaskAndResearch.Data;
 
 namespace Mcp.TaskAndResearch.UI.Components.Pages;
 
@@ -13,7 +14,15 @@ public partial class SettingsView : ComponentBase
     [Inject]
     private ISnackbar Snackbar { get; set; } = default!;
 
+    [Inject]
+    private IMigrationService MigrationService { get; set; } = default!;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
     private AppSettings _settings = new();
+    private bool _isImporting;
+    private bool _isExporting;
     private const string SettingsKey = "taskManager_settings";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -96,6 +105,79 @@ public partial class SettingsView : ComponentBase
         _settings = new AppSettings();
         await SaveSettings();
         Snackbar.Add("Settings reset to defaults", Severity.Info);
+    }
+
+    private async Task ImportLegacyTasks()
+    {
+        var result = await DialogService.ShowMessageBox(
+            "Import Legacy Tasks",
+            "This will import tasks from legacy JSON files. Duplicate tasks will be skipped. Continue?",
+            yesText: "Import",
+            cancelText: "Cancel");
+
+        if (result != true)
+        {
+            return;
+        }
+
+        _isImporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var importResult = await MigrationService.ImportFromJsonAsync();
+            
+            if (!importResult.Success)
+            {
+                Snackbar.Add($"Import failed: {importResult.Error}", Severity.Error);
+            }
+            else if (importResult.TasksImported == 0 && importResult.SnapshotsImported == 0)
+            {
+                Snackbar.Add("No legacy JSON files found to import", Severity.Info);
+            }
+            else
+            {
+                Snackbar.Add($"Imported {importResult.TasksImported} tasks and {importResult.SnapshotsImported} snapshots", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Import error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isImporting = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExportTasksToJson()
+    {
+        _isExporting = true;
+        StateHasChanged();
+
+        try
+        {
+            var exportResult = await MigrationService.ExportToJsonAsync();
+            
+            if (!exportResult.Success)
+            {
+                Snackbar.Add($"Export failed: {exportResult.Error}", Severity.Error);
+            }
+            else
+            {
+                Snackbar.Add($"Exported to {exportResult.TasksFilePath}", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Export error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _isExporting = false;
+            StateHasChanged();
+        }
     }
 
     private sealed class AppSettings
