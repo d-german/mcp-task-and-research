@@ -43,7 +43,9 @@ internal sealed class TaskStore : ITaskRepository
     public async Task<ImmutableArray<TaskItem>> GetAllAsync()
     {
         var document = await ReadDocumentAsync().ConfigureAwait(false);
-        return document.Tasks;
+        return document.Tasks
+            .OrderByDescending(t => t.CreatedAt)
+            .ToImmutableArray();
     }
 
     public async Task<TaskItem?> GetByIdAsync(string taskId)

@@ -36,7 +36,7 @@ Create or edit `.vscode/mcp.json` in your project:
 }
 ```
 
-> 💡 **Important**: Always set `DATA_DIR` to a project-specific path to keep tasks isolated between projects.
+> 💡 **Important**: Always set `DATA_DIR` to a project-specific path to keep tasks isolated between projects. Use `${workspaceFolder}` if your environment supports it, or absolute paths otherwise.
 
 ### 3. Start Using
 
@@ -215,7 +215,7 @@ Then configure with the published DLL path instead of the command name.
 
 ## ⚠️ Data Storage & Project Isolation
 
-**TL;DR**: Always set `DATA_DIR` to a project-specific path in your `.vscode/mcp.json` to keep tasks isolated between projects.
+**TL;DR**: Always set `DATA_DIR` to a project-specific path to keep tasks isolated between projects.
 
 ### Why This Matters
 
@@ -224,9 +224,28 @@ Without `DATA_DIR`, all projects share one global task list, which causes:
 - Wrong task execution (agent picks tasks from other projects)
 - Broken dependencies across unrelated projects
 
-### Recommended Setup
+### Understanding Path Resolution
 
-Use project-specific paths in each project's `.vscode/mcp.json`:
+MCP clients handle path resolution differently based on their capabilities and how they set the working directory:
+
+**✅ Environments Where Relative Paths Work**
+- Some MCP clients set the working directory to the project/workspace folder when spawning servers
+- In these environments, relative paths like `.mcp-tasks` work perfectly fine
+- The path resolves correctly to `<project-root>/.mcp-tasks`
+- **Benefit**: Simple, portable configuration across projects
+
+```json
+{
+  "env": {
+    "DATA_DIR": ".mcp-tasks"
+  }
+}
+```
+
+**✅ Environments with Variable Substitution** (e.g., VS Code)
+- Support variables like `${workspaceFolder}` in configuration
+- Variables are resolved to absolute paths before being passed to the MCP server
+- **Benefit**: Explicit control with portability
 
 ```json
 {
@@ -236,7 +255,67 @@ Use project-specific paths in each project's `.vscode/mcp.json`:
 }
 ```
 
-Or use absolute paths:
+**⚠️ Environments Where Relative Paths Fail**
+- Some clients don't set a working directory when spawning MCP server processes
+- Relative paths resolve based on where the host application was launched (unpredictable)
+- **On Windows**: May resolve to `C:\Windows\System32\.mcp-tasks`
+- **On macOS/Linux**: May resolve to `/` or other system directories
+- **Required**: Use absolute paths
+
+```json
+{
+  "env": {
+    "DATA_DIR": "/Users/username/myproject/.mcp-tasks"
+  }
+}
+```
+
+### Local vs Global Configuration
+
+**Local Configuration Support** (e.g., VS Code with `.vscode/mcp.json`)
+- Some environments allow per-project MCP configuration files
+- Configuration overrides global settings for that specific project
+- Enables project-specific paths and environment variables
+
+**Global Configuration Only**
+- Other environments only honor global configuration files
+- All projects use the same MCP server configuration
+- **Must use absolute paths** specific to each project if you want isolation
+
+💡 **How to determine what works in your environment:**
+1. Start with a simple relative path: `"DATA_DIR": ".mcp-tasks"`
+2. Create a task and check where the `.mcp-tasks` folder was created
+3. If it appears in your project root: ✅ Relative paths work
+4. If it appears elsewhere (system directories): Use `${workspaceFolder}/.mcp-tasks` or absolute paths
+
+⚠️ **Check your MCP client's documentation for:**
+- Variable substitution support (e.g., `${workspaceFolder}`)
+- Local configuration file support (e.g., `.vscode/mcp.json`)
+- Working directory behavior for spawned processes
+
+### Best Practices
+
+**Priority order (try these in order):**
+
+1. **Simple relative path** (if your client supports proper working directory):
+```json
+{
+  "env": {
+    "DATA_DIR": ".mcp-tasks"
+  }
+}
+```
+
+2. **Variable substitution** (if your client supports it):
+```json
+{
+  "env": {
+    "DATA_DIR": "${workspaceFolder}/.mcp-tasks"
+  }
+}
+```
+
+3. **Absolute path** (always works, but less portable):
 ```json
 {
   "env": {
@@ -245,10 +324,12 @@ Or use absolute paths:
 }
 ```
 
-**Best practices:**
-- Use `.mcp-tasks` folder convention
+**General guidelines:**
+- Use `.mcp-tasks` folder convention for consistency
 - Add to `.gitignore` for private tasks (or commit for team sharing)
 - One `DATA_DIR` per project ensures complete isolation
+- Test your configuration by checking where files are actually created
+- If files appear in system directories, escalate to option 2 or 3
 
 ---
 
@@ -257,7 +338,7 @@ Or use absolute paths:
 ### Core Settings
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATA_DIR` | `.mcp-tasks` | **Use absolute path!** Folder for task data storage |
+| `DATA_DIR` | `.mcp-tasks` | Folder for task data storage. **Use `${workspaceFolder}/.mcp-tasks` (if supported) or absolute paths for reliability** |
 | `TASK_MANAGER_UI` | `false` | Enable Blazor web dashboard (auto-selects available port starting at 9998) |
 | `TASK_MANAGER_UI_AUTO_OPEN` | `false` | Auto-open browser when server starts |
 

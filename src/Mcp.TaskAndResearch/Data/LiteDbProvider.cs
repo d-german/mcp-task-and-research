@@ -53,14 +53,26 @@ internal sealed class LiteDbProvider : ILiteDbProvider
     private static void ConfigureMapper(BsonMapper mapper)
     {
         // Configure DateTimeOffset serialization
-        mapper.RegisterType(
-            serialize: dto => new BsonValue(dto.UtcDateTime),
-            deserialize: bson => new DateTimeOffset(bson.AsDateTime, TimeSpan.Zero));
+        // Store as UTC, read back directly (LiteDB handles UTC/local conversion)
+        mapper.RegisterType<DateTimeOffset>(
+            serialize: (DateTimeOffset dto) => new BsonValue(dto.UtcDateTime),
+            deserialize: (BsonValue bson) => new DateTimeOffset(bson.AsDateTime));
 
         // Configure nullable DateTimeOffset serialization
         mapper.RegisterType<DateTimeOffset?>(
-            serialize: dto => dto.HasValue ? new BsonValue(dto.Value.UtcDateTime) : BsonValue.Null,
-            deserialize: bson => bson.IsNull ? null : new DateTimeOffset(bson.AsDateTime, TimeSpan.Zero));
+            serialize: (DateTimeOffset? dto) => dto.HasValue ? new BsonValue(dto.Value.UtcDateTime) : BsonValue.Null,
+            deserialize: (BsonValue bson) => bson.IsNull ? null : new DateTimeOffset(bson.AsDateTime));
+
+        // Configure nullable DateTimeOffset serialization
+        mapper.RegisterType<DateTimeOffset?>(
+            serialize: (DateTimeOffset? dto) => dto.HasValue ? new BsonValue(dto.Value.UtcDateTime) : BsonValue.Null,
+            deserialize: (BsonValue bson) => 
+            {
+                if (bson.IsNull) return null;
+                var dt = bson.AsDateTime;
+                var utcDt = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+                return new DateTimeOffset(utcDt).ToLocalTime();
+            });
     }
 
     private static void EnsureDirectory(string path)

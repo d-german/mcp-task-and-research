@@ -41,7 +41,9 @@ internal sealed class LiteDbTaskRepository : ITaskRepository
     /// <inheritdoc />
     public Task<ImmutableArray<TaskItem>> GetAllAsync()
     {
-        var tasks = Tasks.FindAll().ToImmutableArray();
+        var tasks = Tasks.FindAll()
+            .OrderBy(t => t.CreatedAt)
+            .ToImmutableArray();
         return Task.FromResult(tasks);
     }
 
