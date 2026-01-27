@@ -70,16 +70,49 @@ public partial class TaskDetailDialog : ComponentBase
         }
     }
 
+    /// <summary>
+    /// Converts literal \n sequences to actual newlines for proper textarea display.
+    /// Also handles \n- patterns commonly sent by LLMs.
+    /// </summary>
+    private static string? NormalizeNewlines(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return text;
+        }
+
+        // Replace literal \n sequences with actual newlines
+        // Order matters: handle \r\n first, then \n
+        var normalized = text;
+        
+        if (normalized.Contains(@"\r\n"))
+        {
+            normalized = normalized.Replace(@"\r\n", "\n");
+        }
+        
+        if (normalized.Contains(@"\n"))
+        {
+            normalized = normalized.Replace(@"\n", "\n");
+        }
+        
+        if (normalized.Contains(@"\t"))
+        {
+            normalized = normalized.Replace(@"\t", "\t");
+        }
+
+        return normalized;
+    }
+
     private static EditTaskModel CreateModelFromTask(TaskItem task)
     {
         return new EditTaskModel
         {
             Name = task.Name,
-            Description = task.Description,
+            Description = NormalizeNewlines(task.Description) ?? string.Empty,
             Status = task.Status,
-            Notes = task.Notes,
-            ImplementationGuide = task.ImplementationGuide,
-            VerificationCriteria = task.VerificationCriteria
+            Notes = NormalizeNewlines(task.Notes),
+            ImplementationGuide = NormalizeNewlines(task.ImplementationGuide),
+            VerificationCriteria = NormalizeNewlines(task.VerificationCriteria)
         };
     }
 

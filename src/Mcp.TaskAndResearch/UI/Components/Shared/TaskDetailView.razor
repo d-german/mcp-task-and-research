@@ -1,4 +1,5 @@
 @using Mcp.TaskAndResearch.Data
+@using Mcp.TaskAndResearch.Services
 @using Microsoft.AspNetCore.Components
 
 <MudGrid Spacing="2">
@@ -7,18 +8,18 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Summary</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
-                @((MarkupString)HighlightText(Task.Summary))
-            </MudText>
+            <div class="markdown-content">
+                @((MarkupString)RenderMarkdown(Task.Summary))
+            </div>
         </MudItem>
     }
 
     @* Description - Always shown *@
     <MudItem xs="12">
         <MudText Typo="Typo.subtitle2" Class="mb-1">Description</MudText>
-        <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
-            @((MarkupString)HighlightText(Task.Description))
-        </MudText>
+        <div class="markdown-content">
+            @((MarkupString)RenderMarkdown(Task.Description))
+        </div>
     </MudItem>
 
     @* Notes - Conditional *@
@@ -26,9 +27,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Notes</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
-                @((MarkupString)HighlightText(Task.Notes))
-            </MudText>
+            <div class="markdown-content">
+                @((MarkupString)RenderMarkdown(Task.Notes))
+            </div>
         </MudItem>
     }
 
@@ -37,9 +38,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Analysis</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
-                @((MarkupString)HighlightText(Task.AnalysisResult))
-            </MudText>
+            <div class="markdown-content">
+                @((MarkupString)RenderMarkdown(Task.AnalysisResult))
+            </div>
         </MudItem>
     }
 
@@ -48,9 +49,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Implementation Guide</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
-                @((MarkupString)HighlightText(Task.ImplementationGuide))
-            </MudText>
+            <div class="markdown-content">
+                @((MarkupString)RenderMarkdown(Task.ImplementationGuide))
+            </div>
         </MudItem>
     }
 
@@ -59,9 +60,9 @@
     {
         <MudItem xs="12">
             <MudText Typo="Typo.subtitle2" Class="mb-1">Verification Criteria</MudText>
-            <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
-                @((MarkupString)HighlightText(Task.VerificationCriteria))
-            </MudText>
+            <div class="markdown-content">
+                @((MarkupString)RenderMarkdown(Task.VerificationCriteria))
+            </div>
         </MudItem>
     }
 
@@ -75,7 +76,7 @@
                 {
                     <MudListItem T="string" Icon="@GetFileIcon(file.Type)">
                         <MudText Typo="Typo.body2">
-                            @((MarkupString)HighlightText(file.Path))
+                            @((MarkupString)RenderMarkdown(file.Path))
                             @if (file.LineStart.HasValue && file.LineEnd.HasValue)
                             {
                                 <text> (Lines @file.LineStart - @file.LineEnd)</text>
@@ -84,7 +85,7 @@
                             {
                                 <br />
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                                    @((MarkupString)HighlightText(file.Description))
+                                    @((MarkupString)RenderMarkdown(file.Description))
                                 </MudText>
                             }
                         </MudText>
@@ -131,7 +132,7 @@
             @if (!string.IsNullOrWhiteSpace(Task.Agent))
             {
                 <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    Agent: @((MarkupString)HighlightText(Task.Agent))
+                    Agent: @((MarkupString)RenderMarkdown(Task.Agent))
                 </MudText>
             }
         </MudStack>
@@ -162,51 +163,11 @@
     };
 
     /// <summary>
-    /// Highlights search term occurrences in text with &lt;mark&gt; tags.
-    /// XSS-safe: HTML-encodes all text before inserting markup.
+    /// Renders markdown text to HTML with optional search term highlighting.
+    /// Handles markdown syntax and literal \n characters.
     /// </summary>
-    private string HighlightText(string? text)
+    private string RenderMarkdown(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return string.Empty;
-        }
-
-        if (string.IsNullOrWhiteSpace(SearchTerm))
-        {
-            return System.Net.WebUtility.HtmlEncode(text);
-        }
-
-        // Build result string with all occurrences highlighted
-        var result = new System.Text.StringBuilder();
-        var currentIndex = 0;
-        
-        while (currentIndex < text.Length)
-        {
-            var index = text.IndexOf(SearchTerm, currentIndex, StringComparison.OrdinalIgnoreCase);
-            
-            if (index < 0)
-            {
-                // No more matches - add rest of text
-                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex)));
-                break;
-            }
-            
-            // Add text before match
-            if (index > currentIndex)
-            {
-                result.Append(System.Net.WebUtility.HtmlEncode(text.Substring(currentIndex, index - currentIndex)));
-            }
-            
-            // Add highlighted match
-            var actualMatch = text.Substring(index, SearchTerm.Length);
-            result.Append("<mark>");
-            result.Append(System.Net.WebUtility.HtmlEncode(actualMatch));
-            result.Append("</mark>");
-            
-            currentIndex = index + SearchTerm.Length;
-        }
-        
-        return result.ToString();
+        return MarkdownService.ToHtmlWithHighlighting(text, SearchTerm);
     }
 }

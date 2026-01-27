@@ -1,4 +1,5 @@
 @using Mcp.TaskAndResearch.Data
+@using Mcp.TaskAndResearch.Services
 
 <MudDialog Style="max-height: 90vh;">
     <TitleContent>
@@ -39,29 +40,81 @@
                             }
                         </MudSelect>
                         
-                        <MudTextField @bind-Value="_model.Description"
-                                      Label="Description"
-                                      Variant="Variant.Outlined"
-                                      AutoGrow="true"
-                                      MaxLines="15" />
+                        <MudStack Spacing="1">
+                            <MudTextField @bind-Value="_model.Description"
+                                          Label="Description"
+                                          Variant="Variant.Outlined"
+                                          Lines="3"
+                                          AutoGrow="true"
+                                          MaxLines="15"
+                                          Immediate="true" />
+                            @if (!string.IsNullOrWhiteSpace(_model.Description))
+                            {
+                                <MudPaper Elevation="0" Class="pa-2 markdown-preview">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Preview:</MudText>
+                                    <div class="markdown-content">
+                                        @((MarkupString)MarkdownService.ToHtml(_model.Description))
+                                    </div>
+                                </MudPaper>
+                            }
+                        </MudStack>
                         
-                        <MudTextField @bind-Value="_model.ImplementationGuide"
-                                      Label="Implementation Guide"
-                                      Variant="Variant.Outlined"
-                                      AutoGrow="true"
-                                      MaxLines="20" />
+                        <MudStack Spacing="1">
+                            <MudTextField @bind-Value="_model.ImplementationGuide"
+                                          Label="Implementation Guide"
+                                          Variant="Variant.Outlined"
+                                          Lines="3"
+                                          AutoGrow="true"
+                                          MaxLines="20"
+                                          Immediate="true" />
+                            @if (!string.IsNullOrWhiteSpace(_model.ImplementationGuide))
+                            {
+                                <MudPaper Elevation="0" Class="pa-2 markdown-preview">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Preview:</MudText>
+                                    <div class="markdown-content">
+                                        @((MarkupString)MarkdownService.ToHtml(_model.ImplementationGuide))
+                                    </div>
+                                </MudPaper>
+                            }
+                        </MudStack>
                         
-                        <MudTextField @bind-Value="_model.VerificationCriteria"
-                                      Label="Verification Criteria"
-                                      Variant="Variant.Outlined"
-                                      AutoGrow="true"
-                                      MaxLines="10" />
+                        <MudStack Spacing="1">
+                            <MudTextField @bind-Value="_model.VerificationCriteria"
+                                          Label="Verification Criteria"
+                                          Variant="Variant.Outlined"
+                                          Lines="3"
+                                          AutoGrow="true"
+                                          MaxLines="10"
+                                          Immediate="true" />
+                            @if (!string.IsNullOrWhiteSpace(_model.VerificationCriteria))
+                            {
+                                <MudPaper Elevation="0" Class="pa-2 markdown-preview">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Preview:</MudText>
+                                    <div class="markdown-content">
+                                        @((MarkupString)MarkdownService.ToHtml(_model.VerificationCriteria))
+                                    </div>
+                                </MudPaper>
+                            }
+                        </MudStack>
                         
-                        <MudTextField @bind-Value="_model.Notes"
-                                      Label="Notes"
-                                      Variant="Variant.Outlined"
-                                      AutoGrow="true"
-                                      MaxLines="10" />
+                        <MudStack Spacing="1">
+                            <MudTextField @bind-Value="_model.Notes"
+                                          Label="Notes"
+                                          Variant="Variant.Outlined"
+                                          Lines="3"
+                                          AutoGrow="true"
+                                          MaxLines="10"
+                                          Immediate="true" />
+                            @if (!string.IsNullOrWhiteSpace(_model.Notes))
+                            {
+                                <MudPaper Elevation="0" Class="pa-2 markdown-preview">
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary">Preview:</MudText>
+                                    <div class="markdown-content">
+                                        @((MarkupString)MarkdownService.ToHtml(_model.Notes))
+                                    </div>
+                                </MudPaper>
+                            }
+                        </MudStack>
                     </MudStack>
                 </MudForm>
             }
@@ -77,20 +130,25 @@
                     <MudExpansionPanels MultiExpansion="true" Elevation="1">
                         @* Description - Expanded by Default *@
                         <MudExpansionPanel Text="Description" Expanded="true" Icon="@Icons.Material.Filled.Description">
-                            <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.6;">
-                                @(string.IsNullOrWhiteSpace(Task.Description) ? "(No description)" : Task.Description)
-                            </MudText>
+                            @if (string.IsNullOrWhiteSpace(Task.Description))
+                            {
+                                <MudText Typo="Typo.body1">(No description)</MudText>
+                            }
+                            else
+                            {
+                                <div class="markdown-content">
+                                    @((MarkupString)MarkdownService.ToHtml(Task.Description))
+                                </div>
+                            }
                         </MudExpansionPanel>
                         
                         @* Implementation Guide *@
                         @if (!string.IsNullOrWhiteSpace(Task.ImplementationGuide))
                         {
                             <MudExpansionPanel Text="Implementation Guide" Expanded="true" Icon="@Icons.Material.Filled.Code">
-                                <MudPaper Elevation="0" Class="pa-3" Style="background-color: var(--mud-palette-background); font-family: 'Consolas', 'Courier New', monospace;">
-                                    <MudText Typo="Typo.body2" Style="white-space: pre-wrap; line-height: 1.8;">
-                                        @Task.ImplementationGuide
-                                    </MudText>
-                                </MudPaper>
+                                <div class="markdown-content">
+                                    @((MarkupString)MarkdownService.ToHtml(Task.ImplementationGuide))
+                                </div>
                             </MudExpansionPanel>
                         }
                         
@@ -98,9 +156,9 @@
                         @if (!string.IsNullOrWhiteSpace(Task.VerificationCriteria))
                         {
                             <MudExpansionPanel Text="Verification Criteria" Expanded="true" Icon="@Icons.Material.Filled.Checklist">
-                                <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.6;">
-                                    @Task.VerificationCriteria
-                                </MudText>
+                                <div class="markdown-content">
+                                    @((MarkupString)MarkdownService.ToHtml(Task.VerificationCriteria))
+                                </div>
                             </MudExpansionPanel>
                         }
                         
@@ -108,9 +166,9 @@
                         @if (!string.IsNullOrWhiteSpace(Task.Notes))
                         {
                             <MudExpansionPanel Text="Notes" Expanded="false" Icon="@Icons.Material.Filled.StickyNote2">
-                                <MudText Typo="Typo.body1" Style="white-space: pre-wrap; line-height: 1.6;">
-                                    @Task.Notes
-                                </MudText>
+                                <div class="markdown-content">
+                                    @((MarkupString)MarkdownService.ToHtml(Task.Notes))
+                                </div>
                             </MudExpansionPanel>
                         }
                         
