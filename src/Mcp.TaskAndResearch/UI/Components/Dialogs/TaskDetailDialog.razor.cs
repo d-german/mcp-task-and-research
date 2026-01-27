@@ -12,6 +12,9 @@ public partial class TaskDetailDialog : ComponentBase
     [Parameter, EditorRequired]
     public TaskItem Task { get; set; } = default!;
 
+    [Parameter]
+    public bool StartInEditMode { get; set; }
+
     [Inject]
     private ITaskRepository TaskStore { get; set; } = default!;
 
@@ -32,6 +35,7 @@ public partial class TaskDetailDialog : ComponentBase
     protected override void OnParametersSet()
     {
         _model = CreateModelFromTask(Task);
+        _isEditMode = StartInEditMode;
     }
 
     private void EnableEdit()

@@ -89,7 +89,8 @@ private Func<TaskItem, bool> _quickFilter => task =>
         {
             var parameters = new DialogParameters<Dialogs.TaskDetailDialog>
             {
-                { x => x.Task, task }
+                { x => x.Task, task },
+                { x => x.StartInEditMode, startInEditMode }
             };
 
             var options = new DialogOptions
