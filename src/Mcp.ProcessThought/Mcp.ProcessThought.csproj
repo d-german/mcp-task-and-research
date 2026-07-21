@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Tool Packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>mcp-process-thought</ToolCommandName>
+    <IsPackable>true</IsPackable>
+
+    <!-- Package Metadata -->
+    <PackageId>Mcp.ProcessThought</PackageId>
+    <Version>1.0.1</Version>
+    <Authors>d-german</Authors>
+    <Description>Standalone MCP server exposing a concise process_thought tool for structured, evidence-based reasoning.</Description>
+    <PackageProjectUrl>https://github.com/d-german/mcp-task-and-research</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/d-german/mcp-task-and-research</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>mcp;model-context-protocol;reasoning;process-thought;ai-assistant</PackageTags>
+    <PackageReleaseNotes>1.0.1 reduces duplicate MCP response content, restores legacy template placeholders, validates sequence inputs, corrects client setup documentation, and moves to stable ModelContextProtocol 1.4.1.</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.10" />
+    <PackageReference Include="ModelContextProtocol" Version="1.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Prompts\**\*.md" Pack="false">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>

@@ -92,6 +92,8 @@ MCP Task and Research Server transforms how AI agents approach software developm
 - **Process Thought**: Structured thinking with branching and revision support
 - **Chain-of-Thought**: Encourages reflection and style consistency
 
+`process_thought` remains bundled here for backward compatibility. To run it as a lightweight, single-tool MCP server, install `Mcp.ProcessThought` and use the `mcp-process-thought` command.
+
 ### 💾 Memory & Data Management
 
 - **Task Snapshots**: Automatic preservation of task state when `clear_all_tasks` runs (completed tasks are stored in `DATA_DIR/memory`)
@@ -210,7 +212,7 @@ You: "plan task: set up CI/CD pipeline"
 | Tool | Description |
 |------|-------------|
 | `research_mode` | Enter guided research mode for a topic |
-| `process_thought` | Record structured thinking steps |
+| `process_thought` | Guide structured thinking steps |
 | `analyze_task` | Deep analysis of task requirements and approach |
 | `reflect_task` | Critical review of analysis results for optimization |
 
