@@ -6,7 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Protocol;
 
-var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.1";
+var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "1.0.2";
 
 if (args.Length > 0 && (args[0] == "--version" || args[0] == "-v"))
 {

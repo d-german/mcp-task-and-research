@@ -1,0 +1,26 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "description": "Concise structured, evidence-based reasoning for AI coding assistants.",
+  "name": "io.github.d-german/process-thought",
+  "title": "Process Thought",
+  "version": "1.0.2",
+  "packages": [
+    {
+      "registryType": "nuget",
+      "registryBaseUrl": "https://api.nuget.org",
+      "identifier": "Mcp.ProcessThought",
+      "version": "1.0.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [],
+      "environmentVariables": []
+    }
+  ],
+  "repository": {
+    "url": "https://github.com/d-german/mcp-task-and-research",
+    "source": "github",
+    "subfolder": "src/Mcp.ProcessThought"
+  },
+  "websiteUrl": "https://github.com/d-german/mcp-task-and-research/tree/main/src/Mcp.ProcessThought"
+}

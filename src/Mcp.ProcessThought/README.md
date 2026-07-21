@@ -12,6 +12,14 @@ dotnet tool install --global Mcp.ProcessThought
 
 This installs the `mcp-process-thought` command.
 
+With the .NET 10 SDK, it can also be run without a persistent installation:
+
+```bash
+dnx Mcp.ProcessThought@1.0.2 --yes
+```
+
+The package includes NuGet's `McpServer` metadata and `.mcp/server.json`, so compatible clients can discover it and generate a `dnx` configuration from the NuGet MCP Server tab.
+
 ## The `process_thought` tool
 
 Accepts one step in an iterative reasoning sequence and returns only a short status and next-action cue. The tool does not repeat the submitted thought in its result, because MCP already retains the tool arguments in the conversation. This preserves the reasoning context while avoiding duplicate tokens.

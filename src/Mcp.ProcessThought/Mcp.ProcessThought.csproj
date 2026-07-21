@@ -10,10 +10,11 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>mcp-process-thought</ToolCommandName>
     <IsPackable>true</IsPackable>
+    <PackageType>DotnetTool;McpServer</PackageType>
 
     <!-- Package Metadata -->
     <PackageId>Mcp.ProcessThought</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
     <Authors>d-german</Authors>
     <Description>Standalone MCP server exposing a concise process_thought tool for structured, evidence-based reasoning.</Description>
     <PackageProjectUrl>https://github.com/d-german/mcp-task-and-research</PackageProjectUrl>
@@ -22,11 +23,12 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>mcp;model-context-protocol;reasoning;process-thought;ai-assistant</PackageTags>
-    <PackageReleaseNotes>1.0.1 reduces duplicate MCP response content, restores legacy template placeholders, validates sequence inputs, corrects client setup documentation, and moves to stable ModelContextProtocol 1.4.1.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.0.2 adds the official McpServer package type and discovery manifest. It also includes the concise responses, template compatibility, validation, corrected setup documentation, and stable MCP SDK upgrade introduced in 1.0.1.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include=".mcp\server.json" Pack="true" PackagePath=".mcp\server.json" />
   </ItemGroup>
 
   <ItemGroup>
